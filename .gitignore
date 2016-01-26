@@ -51,3 +51,15 @@ Temporary Items
 .idea/*
 .idea
 .idea\*
+
+
+###yowsup
+*.pyc
+*.class
+todo
+*.egg-info
+tp
+tests
+dist
+build
+.idea
