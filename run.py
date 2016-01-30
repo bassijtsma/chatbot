@@ -13,7 +13,7 @@ from yowsup.stacks import YowStack, YOWSUP_CORE_LAYERS
 from yowsup.layers.axolotl                     import YowAxolotlLayer
 from yowsup import env
 
-import credentials.py as crdntials
+import credentials as crdntials
 
 crdntls = crdntials.Credentials()
 
