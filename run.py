@@ -13,9 +13,11 @@ from yowsup.stacks import YowStack, YOWSUP_CORE_LAYERS
 from yowsup.layers.axolotl                     import YowAxolotlLayer
 from yowsup import env
 
-import credentials.py
+import credentials.py as crdntials
 
-CREDENTIALS = ("phone", "password") # replace with your phone and password
+crdntls = crdntials.Credentials()
+
+CREDENTIALS = (crdntls.getlogin(), crdntls.getpassword()) # replace with your phone and password
 
 if __name__==  "__main__":
     layers = (
