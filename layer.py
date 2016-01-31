@@ -18,12 +18,12 @@ class EchoLayer(YowInterfaceLayer):
             print messageProtocolEntity.getBody()
 
             messagebody = messageProtocolEntity.getBody().lower()
-            naam = 'rutger'
-            naamtwo = 'kees'
+            naam = 'soeters'
+            naamtwo = 'georg'
             if (naam in messagebody) or (naamtwo in messagebody):
 
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    'HELEMAAL GEK!!',
+                    'MEISTER!!',
                     to = messageProtocolEntity.getFrom())
 
                 self.toLower(outgoingMessageProtocolEntity)
@@ -35,8 +35,8 @@ class EchoLayer(YowInterfaceLayer):
                     to = messageProtocolEntity.getFrom())
                 self.toLower(outgoingMessageProtocolEntity)
 
-            elif messagebody == "ik heb zin in doner":
-                returnmessage = "AIJT NAAR T EETHUIS"
+            elif "doner" in messagebody:
+                returnmessage = "ES IST DONER DONNERSTAG!!!"
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
                     returnmessage,
                     to = messageProtocolEntity.getFrom())
