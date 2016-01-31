@@ -33,4 +33,6 @@ if __name__==  "__main__":
 
     stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))   #sending the connect signal
 
+    print 'going into stack loop'
     stack.loop() #this is the program mainloop
+    print 'stack loop finished'
