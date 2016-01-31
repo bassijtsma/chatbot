@@ -27,7 +27,7 @@ class EchoLayer(YowInterfaceLayer):
 
                 self.toLower(outgoingMessageProtocolEntity)
 
-            else if messagebody = "ik heb zin in pizza":
+            elif messagebody = "ik heb zin in pizza":
                 returnmessage = "Als t maar geen dominos is"
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
                     returnmessage,
@@ -37,6 +37,8 @@ class EchoLayer(YowInterfaceLayer):
             #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
             #         messageProtocolEntity.getBody(),
             #         to = messageProtocolEntity.getFrom())
+            else:
+                print 'msg not soeters or pizza'
 
             self.toLower(receipt)
             # self.toLower(outgoingMessageProtocolEntity)
