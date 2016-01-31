@@ -17,8 +17,9 @@ class EchoLayer(YowInterfaceLayer):
 
             print messageProtocolEntity.getBody()
 
-            messagebody = messageProtocolEntity.getBody()
-            if messagebody.index('sjoerd') != -1:
+            messagebody = messageProtocolEntity.getBody().lower()
+            sjoerd = 'sjoerd'
+            if sjoerd in messagebody -1:
 
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
                     'DIE IS HELEMAAL GEK!!!',
