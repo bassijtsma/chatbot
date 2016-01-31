@@ -18,23 +18,30 @@ class EchoLayer(YowInterfaceLayer):
             print messageProtocolEntity.getBody()
 
             messagebody = messageProtocolEntity.getBody().lower()
-            sjoerd = 'sjoerd'
-            if sjoerd in messagebody -1:
+            naam = 'soeters'
+            if naam in messagebody:
 
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    'DIE IS HELEMAAL GEK!!!',
+                    'MEISTER!!',
                     to = messageProtocolEntity.getFrom())
 
-            else:
+                self.toLower(outgoingMessageProtocolEntity)
+
+            else if messagebody = "ik heb zin in pizza":
+                returnmessage = "Als t maar geen dominos is"
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    messageProtocolEntity.getBody(),
+                    returnmessage,
                     to = messageProtocolEntity.getFrom())
+                self.toLower(outgoingMessageProtocolEntity)
+            # else:
+            #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
+            #         messageProtocolEntity.getBody(),
+            #         to = messageProtocolEntity.getFrom())
 
             self.toLower(receipt)
-            self.toLower(outgoingMessageProtocolEntity)
+            # self.toLower(outgoingMessageProtocolEntity)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
-        print 'receipt hier'
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", entity.getType(), entity.getFrom())
         self.toLower(ack)
