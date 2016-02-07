@@ -2,7 +2,7 @@ from yowsup.layers.interface                           import YowInterfaceLayer,
 from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
 from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
-
+import chatrules
 
 
 class EchoLayer(YowInterfaceLayer):
@@ -18,35 +18,18 @@ class EchoLayer(YowInterfaceLayer):
             print messageProtocolEntity.getBody()
 
             messagebody = messageProtocolEntity.getBody().lower()
-            naam = 'soeters'
-            naamtwo = 'georg'
+
             if (naam in messagebody) or (naamtwo in messagebody):
-
                 outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    'MEISTER!!',
-                    to = messageProtocolEntity.getFrom())
-
-                self.toLower(outgoingMessageProtocolEntity)
-
-            elif messagebody == "ik heb zin in pizza":
-                returnmessage = "Als t maar geen dominos is"
-                outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    returnmessage,
+                    'chatmessage',
                     to = messageProtocolEntity.getFrom())
                 self.toLower(outgoingMessageProtocolEntity)
 
-            elif "doner" in messagebody:
-                returnmessage = "ES IST DONER DONNERSTAG!!!"
-                outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    returnmessage,
-                    to = messageProtocolEntity.getFrom())
-                self.toLower(outgoingMessageProtocolEntity)
             # else:
             #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
             #         messageProtocolEntity.getBody(),
             #         to = messageProtocolEntity.getFrom())
-            else:
-                print 'msg not soeters or pizza'
+
 
             self.toLower(receipt)
             # self.toLower(outgoingMessageProtocolEntity)
