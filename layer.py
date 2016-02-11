@@ -7,31 +7,29 @@ import chatrules
 
 class EchoLayer(YowInterfaceLayer):
 
+    textcounter = 0
+
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         #send receipt otherwise we keep receiving the same message over and over
-
         print 'on message werkt'
         if True:
             receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
 
+            # can keep state within the echoLayer class in the Loop
+            self.textcounter += 1
+            print textcounter
             print messageProtocolEntity.getBody()
 
             messagebody = messageProtocolEntity.getBody().lower()
-
-            if (naam in messagebody) or (naamtwo in messagebody):
-                outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                    'chatmessage',
-                    to = messageProtocolEntity.getFrom())
-                self.toLower(outgoingMessageProtocolEntity)
 
             # else:
             #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
             #         messageProtocolEntity.getBody(),
             #         to = messageProtocolEntity.getFrom())
 
-
             self.toLower(receipt)
+            # uncomment to send msg defined in outgoingMessageProtocolEntity
             # self.toLower(outgoingMessageProtocolEntity)
 
     @ProtocolEntityCallback("receipt")

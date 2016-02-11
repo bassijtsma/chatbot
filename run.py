@@ -14,11 +14,15 @@ from yowsup.stacks import YowStack, YOWSUP_CORE_LAYERS
 from yowsup.layers.axolotl                     import YowAxolotlLayer
 from yowsup import env
 
-import credentials as crdntials
+try:
+    import credentials as crdntials
+except Exception:
+    print '''Your phone nr credentials could not be loaded. Read the instructions
+             in the credentials_todo.py file. Don't forget to rename the file
+             to credentials.py'''
 
 crdntls = crdntials.Credentials()
-
-CREDENTIALS = (crdntls.getlogin(), crdntls.getpassword()) # replace with your phone and password
+CREDENTIALS = (crdntls.getlogin(), crdntls.getpassword())
 
 if __name__==  "__main__":
     layers = (
