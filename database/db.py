@@ -11,10 +11,13 @@ class Db:
 
     print 'importing DB'
     client = MongoClient()
-    db = client.chatbot
+
 
     def __init__(self, database):
-        Chatrules.db = client.database
+        if database == 'test':
+            self.db = self.client.test
+        else:
+            self.db = self.client.prod
 
     def getQuestions(self):
         cursor =  db.questions.find()

@@ -2,16 +2,20 @@ from yowsup.layers.interface                           import YowInterfaceLayer,
 from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
 from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
-from database.db                                       import db
+from database.db                                       import Db
 
 
 class EchoLayer(YowInterfaceLayer):
-
     textcounter = 0
-    database = new database.db
+    database = Db(test)
+
+    database.getQuestions()
+    database.getResponses()
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
+
+
         #send receipt otherwise we keep receiving the same message over and over
         print 'on message werkt'
         if True:
