@@ -2,12 +2,13 @@ from yowsup.layers.interface                           import YowInterfaceLayer,
 from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
 from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
-import chatrules
+from database.db                                       import db
 
 
 class EchoLayer(YowInterfaceLayer):
 
     textcounter = 0
+    database = new database.db
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
