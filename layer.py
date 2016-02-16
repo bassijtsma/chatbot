@@ -6,26 +6,23 @@ from database.db                                       import Db
 
 
 class EchoLayer(YowInterfaceLayer):
-    textcounter = 0
-    database = Db(test)
+    database = Db()
+    questions = database.getQuestions()
+    responses = database.getResponses()
 
-    database.getQuestions()
-    database.getResponses()
+    # a message comes in
+    # go through questions
+    # is the question a substr of the message
+    #   yes: go through responses
+    #        
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-
-
         #send receipt otherwise we keep receiving the same message over and over
         print 'on message werkt'
         if True:
             receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-
-            # can keep state within the echoLayer class in the Loop
-            self.textcounter += 1
-            print textcounter
             print messageProtocolEntity.getBody()
-
             messagebody = messageProtocolEntity.getBody().lower()
 
             # else:
