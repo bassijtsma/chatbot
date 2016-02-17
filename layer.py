@@ -5,21 +5,24 @@ from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtoco
 from database.db                                       import Db
 
 
+
+#TODO
+# reset functie maken. 'chat reset' zet het gesprek weer op 0
+#
+# event listener die luisterd naar disconnect, en weer verbinding maakt
+# org.openwhatsapp.yowsup.event.network.disconnected
+# verify if reconnecting on discnonecting is feasible. something like: https://github.com/tgalal/yowsup/issues/921
+
 class EchoLayer(YowInterfaceLayer):
     database = Db()
     questions = database.getQuestions()
     responses = database.getResponses()
 
-    # a message comes in
-    # go through questions
-    # is the question a substr of the message
-    #   yes: go through responses
-    #        
-
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-        #send receipt otherwise we keep receiving the same message over and over
-        print 'on message werkt'
+        #send receipt otherwise we keep receiving the same message over and
+        print 'message van:', messageProtocolEntity.getFrom()
+        print 'message participants:', messageProtocolEntity.getParticipant()
         if True:
             receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
             print messageProtocolEntity.getBody()
@@ -38,3 +41,8 @@ class EchoLayer(YowInterfaceLayer):
     def onReceipt(self, entity):
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", entity.getType(), entity.getFrom())
         self.toLower(ack)
+
+    #Test. IQ info: http://xmpp.org/rfcs/rfc6120.html#stanzas-semantics-iq
+    @ProtocolEntityCallback("iq")
+    def onIq(self, entity):
+        print(entity)

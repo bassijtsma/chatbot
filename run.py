@@ -27,8 +27,15 @@ CREDENTIALS = (crdntls.getlogin(), crdntls.getpassword())
 if __name__==  "__main__":
     layers = (
         EchoLayer,
-        YowParallelLayer([YowAuthenticationProtocolLayer, YowMessagesProtocolLayer, YowReceiptProtocolLayer, YowAckProtocolLayer, YowIqProtocolLayer]),YowAxolotlLayer
-    ) + YOWSUP_CORE_LAYERS
+    #     YowParallelLayer([YowAuthenticationProtocolLayer, YowMessagesProtocolLayer, YowReceiptProtocolLayer, YowAckProtocolLayer, YowMediaProtocolLayer, YowIqProtocolLayer, YowCallsProtocolLayer]),YowAxolotlLayer
+    # ) + YOWSUP_CORE_LAYERS
+    (YowAuthenticationProtocolLayer, YowMessagesProtocolLayer, YowReceiptProtocolLayer, YowAckProtocolLayer, YowMediaProtocolLayer, YowIqProtocolLayer, YowCallsProtocolLayer),
+    YowAxolotlLayer,
+    YowLoggerLayer,
+    YowCoderLayer,
+    YowCryptLayer,
+    YowStanzaRegulator,
+    YowNetworkLayer)
 
     stack = YowStack(layers)
     stack.setProp(YowAuthenticationProtocolLayer.PROP_CREDENTIALS, CREDENTIALS)         #setting credentials
