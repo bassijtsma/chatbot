@@ -18,24 +18,33 @@ class EchoLayer(YowInterfaceLayer):
     questions = database.getQuestions()
     responses = database.getResponses()
 
+
+    def reinitialize(self):
+        print 'resetting questions and responses...'
+        self.questions = database.getQuestions()
+        self.responses = database.getResponses()
+
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         #send receipt otherwise we keep receiving the same message over and
         print 'message van:', messageProtocolEntity.getFrom()
         print 'message participants:', messageProtocolEntity.getParticipant()
-        if True:
-            receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-            print messageProtocolEntity.getBody()
-            messagebody = messageProtocolEntity.getBody().lower()
+        print messageProtocolEntity.getBody()
 
-            # else:
-            #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-            #         messageProtocolEntity.getBody(),
-            #         to = messageProtocolEntity.getFrom())
+        if messageProtocolEntity.getBody() == 'chat reset':
+            self.reinitialize()
 
-            self.toLower(receipt)
-            # uncomment to send msg defined in outgoingMessageProtocolEntity
-            # self.toLower(outgoingMessageProtocolEntity)
+        receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
+        messagebody = messageProtocolEntity.getBody().lower()
+
+        # else:
+        #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
+        #         messageProtocolEntity.getBody(),
+        #         to = messageProtocolEntity.getFrom())
+
+        self.toLower(receipt)
+        # uncomment to send msg defined in outgoingMessageProtocolEntity
+        # self.toLower(outgoingMessageProtocolEntity)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
