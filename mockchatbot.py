@@ -25,6 +25,7 @@ sampledata = Sampledata()
 questions = sampledata.getQuestions()
 responses = sampledata.getResponses()
 conversations = sampledata.getConversations()
+conversationstate = {}
 
 #TODO: ook bijhouden welk question ze zjin voor verschillende gesprek IDs
 # Keeps track of the state of different conversations, so different people
@@ -84,7 +85,7 @@ SUPERNAIVE bruteforce solution:
 1. A message comes in
 2. Go through all defined questions, and get all matches
 3. For all matches, see if the prerequisites for them have been met:
-    3a. <conversationTimeoutThreshold> time ago
+    3a. less than <conversationTimeoutThreshold> time ago
     3b. all earlier questions were already messaged, or
     3c. its the first message in the conversation id
 4. If the prerequisites have been met, go through all responses, and find the
@@ -92,18 +93,56 @@ SUPERNAIVE bruteforce solution:
 5. Echo the corresponding question
 6. Update the conversationstate
 '''
-def checkConversationId(messageSender, message):
+
+
+
+def findMessageQuestionMatches(messageSender, message):
+    matches = []
     for question in questions:
         if (re.search(r'\b' + question['text'] + r'\b', message)):
+            matches.append(question)
+    return matches
+
+# checks the conversationstate if prerequesite have been met to get a response
+def shouldGetResponse(messageSender, questionmatches):
+    for questionmatch in questionmatches:
+        if messageSender in conversationstate:
+            # Check the prerequesites
+            for state in conversationstate[messageSender]:
+                if questionmatch['conv_id'] == state['conv_id']:
+                    print 'TODO'               
+        else:
+            # if the 1st question, prerequesite is met. Add record to conversationstate
+            if questionmatch['qnr'] == 1:
+                addInitialMessageSenderRecord(messageSender, questionmatch)
+    print conversationstate
 
 
 
-sender = 123
-print conversations
+
+def addInitialMessageSenderRecord(messageSender, questionmatch):
+    conversationstate.setdefault(messageSender, [])
+    stateitem = {}
+    stateitem['conv_id'] = questionmatch['conv_id']
+    stateitem['mostrecentinteraction'] = datetime.utcnow()
+    stateitem['question_nr'] = 1
+    conversationstate[messageSender].append(stateitem)
+
+
+
+messageSender = 123
 
 while True:
     message = askForInput()
-    checkConversationId(sender, message)
+    questionmatches = findMessageQuestionMatches(messageSender, message)
+    if questionmatches:
+        shouldGetResponse(messageSender, questionmatches)
+
+    else:
+        # no match, just wait for next input. TODO: any handling needed?
+        continue
+
+
 
 
 

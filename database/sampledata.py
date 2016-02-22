@@ -14,19 +14,6 @@ class Sampledata:
     def getTestconversationState(self):
         return self.testconversationstate
 
-    # oldquestions = [
-    #     { "qid" : 1, "text" : "hoi", "conv_id" : 1, 'question_to' : [{ "rid" : "1" }] },
-    #     { "qid" : 2, "text" : "dubbel hoi", "conv_id" : 1, 'question_to' : [{ "rid" : "2"  }] },
-    #     { "qid" : 3, "text" : "drie", "conv_id" : 1, 'question_to' : [{ "rid" : "2" }] },
-    #     { "qid" : 1, "text" : "een conv2", "conv_id" : 2 }
-    # ]
-
-    # oldresponses = [
-    #     { "rid" : 1, "text" : "doei1antw", "conv_id" : 1, "response_to" : [ { "qid" : 1 } ] },
-    #     {  "rid" : 2, "text" : "doei23antw", "conv_id" : 1, "response_to" : [ { "qid" : 1 }, { "qid" : 2 }, { "qid" : 3 } ] }
-    # ]
-
-
     q = [
         { "qnr" : 1, "text" : "hoi", "conv_id" : 1},
         { "qnr" : 2.1, "text" : "hoi21", "conv_id" : 1},
