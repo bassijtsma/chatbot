@@ -11,6 +11,8 @@ class Sampledata:
     def getConversations(self):
         return self.convs
 
+    def getTestconversationState(self):
+        return self.testconversationstate
 
     # oldquestions = [
     #     { "qid" : 1, "text" : "hoi", "conv_id" : 1, 'question_to' : [{ "rid" : "1" }] },
@@ -49,3 +51,21 @@ class Sampledata:
         { "conv_id" : 1, "conv_name" : "eerste gesprek"},
         { "conv_id" : 2, "conv_name" : "tweede gesprek"}
     ]
+
+
+    testconversationstate = {
+        123 : [
+            {'conv_id': 1, 'latestinteraction' : 10, 'mostrecentquestion': 5 },
+            {'conv_id': 5, 'latestinteraction' : 30, 'mostrecentquestion': 2 },
+        ],
+        456 : [
+            {'conv_id': 2, 'latestinteraction' : 44, 'mostrecentquestion': 1 },
+            {'conv_id': 3, 'latestinteraction' : 30, 'mostrecentquestion': 5 },
+            {'conv_id': 1, 'latestinteraction' : 2, 'mostrecentquestion': 3 },
+        ],
+        789 : [
+            {'conv_id': 5, 'latestinteraction' : 21, 'mostrecentquestion': 1 },
+            {'conv_id': 4, 'latestinteraction' : 30, 'mostrecentquestion': 1 },
+            {'conv_id': 1, 'latestinteraction' : 2, 'mostrecentquestion': 3 },
+        ]
+    }
