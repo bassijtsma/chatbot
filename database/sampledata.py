@@ -15,23 +15,23 @@ class Sampledata:
         return self.testconversationstate
 
     q = [
-        { "qnr" : 1, "text" : "hoi", "conv_id" : 1},
-        { "qnr" : 2.1, "text" : "hoi21", "conv_id" : 1},
-        { "qnr" : 2.2, "text" : "hoi22", "conv_id" : 1},
-        { "qnr" : 2.3, "text" : "hoi23", "conv_id" : 1},
-        { "qnr" : 3, "text" : "hoi3", "conv_id" : 1},
-        { "qnr" : 1, "text" : "hoic1", "conv_id" : 2},
-        { "qnr" : 2, "text" : "hoic2", "conv_id" : 2}
+        { "q_nr" : 1, "text" : "hoi", "conv_id" : 1},
+        { "q_nr" : 2.1, "text" : "hoi21", "conv_id" : 1},
+        { "q_nr" : 2.2, "text" : "hoi22", "conv_id" : 1},
+        { "q_nr" : 2.3, "text" : "hoi23", "conv_id" : 1},
+        { "q_nr" : 3, "text" : "hoi3", "conv_id" : 1},
+        { "q_nr" : 1, "text" : "hoic1", "conv_id" : 2},
+        { "q_nr" : 2, "text" : "hoic2", "conv_id" : 2}
     ]
 
     r = [
-        { "rnr" : 1, "text" : "doei 1", "conv_id" : 1, "response_to_q" : 1},
-        { "rnr" : 2.1, "text" : "doei 21", "conv_id" : 1, "response_to_q" : 2.1},
-        { "rnr" : 2.2, "text" : "doei 22", "conv_id" : 1, "response_to_q" : 2.2},
-        { "rnr" : 2.3, "text" : "doei 23", "conv_id" : 1, "response_to_q" : 2.3},
-        { "rnr" : 3, "text" : "doei 3", "conv_id" : 1, "response_to_q" : 3},
-        { "rnr" : 1, "text" : "doei c1", "conv_id" : 2, "response_to_q" : 1},
-        { "rnr" : 2, "text" : "doei c2", "conv_id" : 2, "response_to_q" : 1}
+        { "r_nr" : 1, "text" : "doei 1", "conv_id" : 1, "response_to_q" : 1},
+        { "r_nr" : 2.1, "text" : "doei 21", "conv_id" : 1, "response_to_q" : 2.1},
+        { "r_nr" : 2.2, "text" : "doei 22", "conv_id" : 1, "response_to_q" : 2.2},
+        { "r_nr" : 2.3, "text" : "doei 23", "conv_id" : 1, "response_to_q" : 2.3},
+        { "r_nr" : 3, "text" : "doei 3", "conv_id" : 1, "response_to_q" : 3},
+        { "r_nr" : 1, "text" : "doei c1", "conv_id" : 2, "response_to_q" : 1},
+        { "r_nr" : 2, "text" : "doei c2", "conv_id" : 2, "response_to_q" : 1}
     ]
 
     convs = [
