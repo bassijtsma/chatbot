@@ -2,6 +2,7 @@ from database.sampledata import Sampledata
 from datetime import time, tzinfo, datetime, timedelta
 import datetime as dt
 import time
+import re
 
 # Requirements:
 
@@ -34,23 +35,18 @@ conversations = sampledata.getConversations()
 # conversationstate =
 # {
 #     m.getFrom() : [
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr}],
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
 #     m.getFrom() : [
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr}],
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
 #     m.getFrom() : [
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr},
-#         {conv_id : x, latestinteraction: timestamp, mostrecentquestion: question_nr}]
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
 # }
-
-
-for conv_id in testconversationstate[123]:
-    if conv_id['conv_id'] == 5:
-        conv_id['latestinteraction'] = 1
 
 # print questions
 # print responses
@@ -58,17 +54,7 @@ for conv_id in testconversationstate[123]:
 
 def askForInput():
     input = raw_input("Your chat message:\n")
-    return input
-
-
-def defineConvId():
-    input = raw_input("\nWhats the conv id?\n")
-    try:
-        conv_id = int(input)
-    except:
-        print 'invalid conv id'
-        exit()
-    return conv_id
+    return input.lower()
 
 
 def getConvName(conv_id):
@@ -79,24 +65,52 @@ def getConvName(conv_id):
 
 
 def updateConversationState(messageSender, question_nr):
-    conversationstate[messageSender]['latestinteraction'] = datetime.utcnow()
+    conversationstate[messageSender]['mostrecentinteraction'] = datetime.utcnow()
     conversationstate[messageSender]['question_nr'] = question_nr
 
 def hasConversationTimedOut(messageSender):
     currenttime = datetime.utcnow()
-    return (currenttime - conversationstate[messageSender]['latestinteraction']) > conversationTimeoutThreshold
+    return (currenttime - conversationstate[messageSender]['mostrecentinteraction']) > conversationTimeoutThreshold
 
 def resetConversationStateForSender(messageSender):
     conversationstate[messageSender]['question_nr'] = 1
-    conversationstate[messageSender]['latestinteraction'] = datetime.utcnow()
+    conversationstate[messageSender]['mostrecentinteraction'] = datetime.utcnow()
 
-# conv_id = defineConvId()
+
 # conv_name = getConvName(conv_id)
-#
-# timenow = datetime.utcnow()
-# time.sleep(1)
-# timeafter = datetime.utcnow()
-# deduct = timeafter - timenow
 
-# while True:
-#     askForInput()
+'''
+SUPERNAIVE bruteforce solution:
+1. A message comes in
+2. Go through all defined questions, and get all matches
+3. For all matches, see if the prerequisites for them have been met:
+    3a. <conversationTimeoutThreshold> time ago
+    3b. all earlier questions were already messaged, or
+    3c. its the first message in the conversation id
+4. If the prerequisites have been met, go through all responses, and find the
+ corresponding answer to the question
+5. Echo the corresponding question
+6. Update the conversationstate
+'''
+def checkConversationId(messageSender, message):
+    for question in questions:
+        if (re.search(r'\b' + question['text'] + r'\b', message)):
+
+
+
+sender = 123
+print conversations
+
+while True:
+    message = askForInput()
+    checkConversationId(sender, message)
+
+
+
+
+
+
+
+
+
+#
