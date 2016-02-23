@@ -64,22 +64,6 @@ def getConvName(conv_id):
             print 'the conv name is:', conv['conv_name']
             return conv['conv_name']
 
-
-'''
-SUPERNAIVE bruteforce solution:
-1. A message comes in
-2. Go through all defined questions, and get all matches
-3. For all matches, see if the prerequisites for them have been met:
-    3a. less than <conversationTimeoutThreshold> time ago
-    3b. all earlier questions were already messaged, or
-    3c. its the first message in the conversation id
-4. If the prerequisites have been met, go through all responses, and find the
- corresponding answer to the question
-5. Echo the corresponding question
-6. Update the conversationstate
-'''
-
-
 def findMessageQuestionMatches(messageSender, message):
     matches = []
     for question in questions:
@@ -88,25 +72,30 @@ def findMessageQuestionMatches(messageSender, message):
     return matches
 
 
-def updateConversationState(messageSender, question):
-    for state in conversationstates[messageSender]:
-        if question['conv_id'] == state['conv_id']:
-            return True # TODO
-
-
 def isFirstQuestion(question):
     return (question['q_nr'] == 1)
 
 
 def isFollowUpQuestion(messageSender, question):
+    q_nrs = getq_nrsList(question['conv_id'])
     try:
         for convstate in conversationstates[messageSender]:
             if convstate['conv_id'] == question['conv_id']:
-                return (convstate['mostrecentquestion'] + 1) == question['q_nr']
+                print (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
+                print 'mostrecentindex: ', q_nrs.index(convstate['mostrecentquestion'])
+                print 'newindex: ', q_nrs.index(question['q_nr'])
+                return (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
     except Exception, e:
+        'THERES AN EXCEPTION', e
         return False
     return False
 
+def getq_nrsList(conv_id):
+    q_nrs = []
+    for question in questions:
+        if conv_id == question['conv_id']:
+            q_nrs.append(question['q_nr'])
+    return q_nrs
 
 def hasConversationTimedOut(messageSender, question):
     try:
@@ -130,15 +119,7 @@ def addInitialMessageSenderRecord(messageSender, question):
     stateitem['mostrecentquestion'] = question['q_nr']
     conversationstates[messageSender].append(stateitem)
 
-def updateConversationState(messageSender, question_nr):
-    conversationstates[messageSender]['mostrecentinteraction'] = datetime.utcnow()
-    conversationstates[messageSender]['question_nr'] = question_nr
-
-
-def resetConversationStateForSender(messageSender):
-    conversationstates[messageSender]['question_nr'] = 1
-    conversationstates[messageSender]['mostrecentinteraction'] = datetime.utcnow()
-
+# Logic of doom
 def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
     print isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut
     if isFirstQuestion:
@@ -158,6 +139,26 @@ def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFo
         else:
             return False
 
+def findMatchingResponse(question):
+    for response in responses:
+        if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
+            return response
+
+
+def updateConversationState(messageSender, question):
+    if messageSender in conversationstates:
+        for conversationstate in conversationstates[messageSender]:
+            if conversationstate['conv_id'] == question['conv_id']:
+                conversationstate['mostrecentinteraction'] = datetime.utcnow()
+                conversationstate['mostrecentquestion'] = question['q_nr']
+                return True
+        # conv_id had no record in the conv state yet, add it
+        conversationstates[messageSender].append({'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'question_nr': question['q_nr']})
+        return True
+    # First registration of record for messageSender
+    else:
+        conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'question_nr': question['q_nr']}]
+        return True
 
 messageSender = 123
 
@@ -174,6 +175,11 @@ while True:
             shouldReceiveResponse = shouldGetResponse(isFirstQuestionBool,
             isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
             print 'should receive response?', shouldReceiveResponse
+            if shouldReceiveResponse:
+                response = findMatchingResponse(question)
+                print response
+                isConvStateUpdated = updateConversationState(messageSender, question)
+                print 'conv state updated: ',isConvStateUpdated, '\n'
     else:
         # no match, just wait for next input. TODO: any handling needed?
         continue
@@ -182,27 +188,40 @@ while True:
 
 
 
-# 2 possible ways to implement the logic. Return either TRUE or FALSE to
-# update the users conversationstate, and go find a suitable response.
-# isFirstQuestion
-# isFollowUpQuestion
-# isUserRegisteredInConversationState
-# hasConversationTimedOut
-#
-# isFirstQuestion:
-#     yes: isUserRegisteredInConversationState:
-#         no: TRUE
-#         yes: hasConversationTimedOut
-#             yes: TRUE
-#             no: RESET
-#     no: isUserRegisteredInConversationState:
-#         no: FALSE
-#         yes: isFollowUpQuestion:
-#             yes: TRUE
-#             no: FALSE
+
+'''
+SUPERNAIVE bruteforce solution for prototype implementation.
+1. A message comes in
+2. Go through all defined questions, and get all matches
+3. For all matches, see if the prerequisites for them have been met:
+    3a. its the first question in the conversation id, or
+    3a. less than <conversationTimeoutThreshold> time ago, or
+    3b. all questions that should have come before were already messaged
+4. If the prerequisites have been met, go through all responses, and find the
+ corresponding answer to the question
+5. Echo the corresponding question
+6. Update the conversationstate
 
 
+Logictree for sending response shown below. TRUE should receive response,
+FALSE should not, RESET should ask the user to reset (still TODO). 4 Booleans:
+isFirstQuestion
+isFollowUpQuestion
+isUserRegisteredInConversationState
+hasConversationTimedOut
 
+isFirstQuestion:
+    yes: isUserRegisteredInConversationState:
+        no: TRUE
+        yes: hasConversationTimedOut
+            yes: TRUE
+            no: RESET
+    no: isUserRegisteredInConversationState:
+        no: FALSE
+        yes: isFollowUpQuestion:
+            yes: TRUE
+            no: FALSE
+'''
 
 
 
