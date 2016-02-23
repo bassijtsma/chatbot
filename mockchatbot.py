@@ -8,17 +8,14 @@ import re
 
 # 1. User provides a message (question), bot responds
 # 2a. User can ask a follow up question, and bot responds as a follow up
-# 2b. The bot does not respond the follow up unless the first question has also been asked
+# 2b. The bot does not respond the follow up unless the previous question has also been asked
 # 3a. User can ask an alternative follow up question, providing several different answers
-# 3b. Each alterantive question has its respective answer, even if the content of the answer is the same
-# 4a. Defined messages (questions) should be transformed to lower case
+# 3b. Each alterantive question has its respective answer, even if the content of the (alternative) answer is the same
+# 4a. Defined questions should be transformed to lower case to ensure case bots insensitivity
 # 4b. An input given by the user during the chat should be transformed to Lower case
 # 5. All the words in the given input during the chat should be checked against the defined messages (questions)
 # 6. Users can have multiple conversations with a chatbot at the same time
 
-# Nice to Haves:
-# 1. Discard determiners (lidwoorden)
-# 2. Performing stemming on given input
 
 conversationTimeoutThreshold = dt.timedelta(minutes=4)
 sampledata = Sampledata()
@@ -26,7 +23,7 @@ questions = sampledata.getQuestions()
 responses = sampledata.getResponses()
 conversations = sampledata.getConversations()
 conversationstates = {}
-
+resetmsg = 'chatreset'
 
 # Keeps track of the state of different conversations, so different people
 # can talk to the bot at the same time without the chat intermingling a response
@@ -48,10 +45,6 @@ conversationstates = {}
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
 # }
-
-# print questions
-# print responses
-# print conversations
 
 def askForInput():
     input = raw_input("Your chat message:\n")
@@ -162,8 +155,21 @@ def updateConversationState(messageSender, question):
 messageSender = 123
 
 
+def resetSendersConversationState(messageSender):
+    try:
+        return(conversationstates.pop(messageSender, True))
+    except Exception, e:
+        return False
+
+
 while True:
     message = askForInput()
+
+    if message == resetmsg:
+        if resetSendersConversationState(messageSender):
+            print 'conversation state has been reset'
+
+
     questionmatches = findMessageQuestionMatches(messageSender, message)
     if questionmatches:
         for question in questionmatches:
