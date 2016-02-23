@@ -81,14 +81,11 @@ def isFollowUpQuestion(messageSender, question):
     try:
         for convstate in conversationstates[messageSender]:
             if convstate['conv_id'] == question['conv_id']:
-                print (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
-                print 'mostrecentindex: ', q_nrs.index(convstate['mostrecentquestion'])
-                print 'newindex: ', q_nrs.index(question['q_nr'])
                 return (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
     except Exception, e:
-        'THERES AN EXCEPTION', e
         return False
     return False
+
 
 def getq_nrsList(conv_id):
     q_nrs = []
@@ -119,6 +116,7 @@ def addInitialMessageSenderRecord(messageSender, question):
     stateitem['mostrecentquestion'] = question['q_nr']
     conversationstates[messageSender].append(stateitem)
 
+
 # Logic of doom
 def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
     print isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut
@@ -139,6 +137,7 @@ def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFo
         else:
             return False
 
+
 def findMatchingResponse(question):
     for response in responses:
         if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
@@ -153,14 +152,15 @@ def updateConversationState(messageSender, question):
                 conversationstate['mostrecentquestion'] = question['q_nr']
                 return True
         # conv_id had no record in the conv state yet, add it
-        conversationstates[messageSender].append({'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'question_nr': question['q_nr']})
+        conversationstates[messageSender].append({'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
         return True
     # First registration of record for messageSender
     else:
-        conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'question_nr': question['q_nr']}]
+        conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
         return True
 
 messageSender = 123
+
 
 while True:
     message = askForInput()
@@ -177,9 +177,8 @@ while True:
             print 'should receive response?', shouldReceiveResponse
             if shouldReceiveResponse:
                 response = findMatchingResponse(question)
-                print response
                 isConvStateUpdated = updateConversationState(messageSender, question)
-                print 'conv state updated: ',isConvStateUpdated, '\n'
+                print response, '\n conv state updated: ',isConvStateUpdated, '\n'
     else:
         # no match, just wait for next input. TODO: any handling needed?
         continue
