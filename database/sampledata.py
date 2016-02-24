@@ -21,7 +21,8 @@ class Sampledata:
         { "q_nr" : 2.3, "text" : "hoi23", "conv_id" : 1},
         { "q_nr" : 3, "text" : "hoi3", "conv_id" : 1},
         { "q_nr" : 1, "text" : "hoic1", "conv_id" : 2},
-        { "q_nr" : 2, "text" : "hoic2", "conv_id" : 2}
+        { "q_nr" : 2, "text" : "hoic2", "conv_id" : 2},
+        { "q_nr" : 1, "text" : "conv3", "conv_id" : 3}
     ]
 
     r = [
@@ -31,19 +32,21 @@ class Sampledata:
         { "r_nr" : 2.3, "text" : "doei 23", "conv_id" : 1, "response_to_q" : 2.3},
         { "r_nr" : 3, "text" : "doei 3", "conv_id" : 1, "response_to_q" : 3},
         { "r_nr" : 1, "text" : "doei c1", "conv_id" : 2, "response_to_q" : 1},
-        { "r_nr" : 2, "text" : "doei c2", "conv_id" : 2, "response_to_q" : 1}
+        { "r_nr" : 2, "text" : "doei c2", "conv_id" : 2, "response_to_q" : 1},
+        { "r_nr" : 1, "text" : "conv3 response", "conv_id" : 3, "response_to_q" : 1}
     ]
 
     convs = [
-        { "conv_id" : 1, "conv_name" : "eerste gesprek"},
-        { "conv_id" : 2, "conv_name" : "tweede gesprek"}
+        { "conv_id" : 1, "conv_name" : "first chat"},
+        { "conv_id" : 2, "conv_name" : "second chat"},
+        { "conv_id" : 2, "conv_name" : "third chat"}
     ]
 
 
     testconversationstate = {
         123 : [
-            {'conv_id': 1, 'latestinteraction' : 10, 'mostrecentquestion': 5 },
-            {'conv_id': 5, 'latestinteraction' : 30, 'mostrecentquestion': 2 },
+            {'conv_id': 1, 'latestinteraction' : 10, 'mostrecentquestion': 2.2 },
+            {'conv_id': 2, 'latestinteraction' : 30, 'mostrecentquestion': 2 },
         ],
         456 : [
             {'conv_id': 2, 'latestinteraction' : 44, 'mostrecentquestion': 1 },

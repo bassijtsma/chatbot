@@ -1,30 +1,20 @@
 from database.sampledata import Sampledata
+from database.db import Db
 from datetime import time, tzinfo, datetime, timedelta
 import datetime as dt
 import time
 import re
 
-# Requirements:
 
-# 1. User provides a message (question), bot responds
-# 2a. User can ask a follow up question, and bot responds as a follow up
-# 2b. The bot does not respond the follow up unless the previous question has also been asked
-# 3a. User can ask an alternative follow up question, providing several different answers
-# 3b. Each alterantive question has its respective answer, even if the content of the (alternative) answer is the same
-# 4a. Defined questions should be transformed to lower case to ensure case bots insensitivity
-# 4b. An input given by the user during the chat should be transformed to Lower case
-# 5. All the words in the given input during the chat should be checked against the defined messages (questions)
-# 6. Users can have multiple conversations with a chatbot at the same time
-
-
-conversationTimeoutThreshold = dt.timedelta(minutes=4)
+db = Db()
 sampledata = Sampledata()
 questions = sampledata.getQuestions()
 responses = sampledata.getResponses()
 conversations = sampledata.getConversations()
-conversationstates = {}
 resetmsg = 'chatreset'
+conversationTimeoutThreshold = dt.timedelta(minutes=4)
 
+conversationstates = {}
 # Keeps track of the state of different conversations, so different people
 # can talk to the bot at the same time without the chat intermingling a response
 # messageProtocolEntity.getFrom() will be key.The most recent interaction with
@@ -152,8 +142,6 @@ def updateConversationState(messageSender, question):
         conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
         return True
 
-messageSender = 123
-
 
 def resetSendersConversationState(messageSender):
     try:
@@ -162,13 +150,18 @@ def resetSendersConversationState(messageSender):
         return False
 
 
+messageSender = 123
+# db.insertTestData()
+
+# Simulate the chatloop
 while True:
+
+    # Simulate incoming messages
     message = askForInput()
 
     if message == resetmsg:
         if resetSendersConversationState(messageSender):
             print 'conversation state has been reset'
-
 
     questionmatches = findMessageQuestionMatches(messageSender, message)
     if questionmatches:
@@ -188,10 +181,6 @@ while True:
     else:
         # no match, just wait for next input. TODO: any handling needed?
         continue
-
-
-
-
 
 
 '''
@@ -227,12 +216,3 @@ isFirstQuestion:
             yes: TRUE
             no: FALSE
 '''
-
-
-
-
-
-
-
-
-#
