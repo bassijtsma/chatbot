@@ -47,7 +47,7 @@ class Db:
         cursor = db.convs.drop()
         return True
 
-    def resetDB(self):
+    def clearDb(self):
         try:
             self.clearQuestions()
             self.clearResponses()
@@ -64,6 +64,11 @@ class Db:
         db.questions.insert(testquestions)
         db.responses.insert(testquestions)
         db.conversations.insert(testconvs)
+
+    def resetDBToTestState(self):
+        clearDb()
+        insertTestData()
         
+
 
 #
