@@ -8,11 +8,19 @@ import re
 
 db = Db()
 sampledata = Sampledata()
-questions = sampledata.getQuestions()
-responses = sampledata.getResponses()
-conversations = sampledata.getConversations()
+
+# TODO: add callbacks. Simple workaround for prototype: delay with time.sleep()
+# and pray for avoiding race conditions
+# questions = sampledata.getQuestions()
+# responses = sampledata.getResponses()
+# conversations = sampledata.getConversations()
+questions = db.getQuestions()
+responses = db.getResponses()
+conversations = db.getConversations()
+
+
 resetmsg = 'chatreset'
-conversationTimeoutThreshold = dt.timedelta(minutes=4)
+conversationTimeoutThreshold = dt.timedelta(seconds=5)
 
 conversationstates = {}
 # Keeps track of the state of different conversations, so different people
@@ -150,9 +158,10 @@ def resetSendersConversationState(messageSender):
         return False
 
 
-messageSender = 123
 # db.insertTestData()
+# db.resetDBToTestState()
 
+messageSender = 123
 # Simulate the chatloop
 while True:
 
