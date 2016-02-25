@@ -35,23 +35,23 @@ class Db:
             print 'nr of responses: ', len(self.responses)
             return self.responses
 
-    def clearQuestions(self):
+    def _clearQuestions(self):
         cursor = db.questions.drop()
         return True
 
-    def clearResponses(self):
+    def _clearResponses(self):
         cursor = db.responses.drop()
         return True
 
-    def clearConvIds(self):
+    def _clearConvIds(self):
         cursor = db.convs.drop()
         return True
 
-    def clearDb(self):
+    def _clearDb(self):
         try:
-            self.clearQuestions()
-            self.clearResponses()
-            self.clearConvIds()
+            self._clearQuestions()
+            self._clearResponses()
+            self._clearConvIds()
             return True
         except Exception, e:
             print e
@@ -66,9 +66,8 @@ class Db:
         db.conversations.insert(testconvs)
 
     def resetDBToTestState(self):
-        clearDb()
+        _clearDb()
         insertTestData()
-        
 
 
 #
