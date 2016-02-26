@@ -72,7 +72,7 @@ class EchoLayer(YowInterfaceLayer):
 
     def hasConversationTimedOut(self, messageSender, question):
         try:
-            for convstate in conversationstates[messageSender]:
+            for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
                     currenttime = datetime.utcnow()
                     return (currenttime - convstate['mostrecentinteraction']) > conversationTimeoutThreshold
@@ -81,16 +81,16 @@ class EchoLayer(YowInterfaceLayer):
         return False
 
     def isUserRegisteredInConversationState(self, messageSender):
-        return (messageSender in conversationstates)
+        return (messageSender in self.conversationstates)
 
 
     def addInitialMessageSenderRecord(self, messageSender, question):
-        conversationstates.setdefault(messageSender, [])
+        self.conversationstates.setdefault(messageSender, [])
         stateitem = {}
         stateitem['conv_id'] = question['conv_id']
         stateitem['mostrecentinteraction'] = datetime.utcnow()
         stateitem['mostrecentquestion'] = question['q_nr']
-        conversationstates[messageSender].append(stateitem)
+        self.conversationstates[messageSender].append(stateitem)
 
 
     # Logic of doom
