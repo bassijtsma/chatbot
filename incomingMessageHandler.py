@@ -1,25 +1,13 @@
-from yowsup.layers.interface                           import YowInterfaceLayer, ProtocolEntityCallback
-from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
-from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
-from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
 from database.sampledata                               import Sampledata
 from database.db                                       import Db
 from datetime                                          import time, tzinfo, datetime, timedelta
-from incomingMessageHandler                            import IncomingMessageHandler
 import datetime as dt
 import time
 import re
 
 
-#TODO
-# event listener die luisterd naar disconnect, en weer verbinding maakt
-# org.openwhatsapp.yowsup.event.network.disconnected
-# verify if reconnecting on discnonecting is feasible. something like: https://github.com/tgalal/yowsup/issues/921
+class IncomingMessageHandler:
 
-
-
-
-class EchoLayer(YowInterfaceLayer):
     db = Db()
     questions = db.getQuestions()
     responses = db.getResponses()
@@ -27,12 +15,27 @@ class EchoLayer(YowInterfaceLayer):
     resetmsg = 'chatreset'
     conversationTimeoutThreshold = dt.timedelta(seconds=5)
 
+    # Keeps track of the state of different conversations, so different people
+    # can talk to the bot at the same time without the chat intermingling a response
+    # messageProtocolEntity.getFrom() will be key.The most recent interaction with
+    # the bot will be tracked to figure out if the conversation has timed out and
+    # should be reset. Finally, it tracks how far into the conversation they are.
+    # conversationstates =
+    # {
+    #     m.getFrom() : [
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
+    #     m.getFrom() : [
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
+    #     m.getFrom() : [
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
+    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
+    # }
     conversationstates = {}
-
-    def askForInput(self):
-        input = raw_input("Your chat message:\n")
-        return input.lower()
-
 
     def getConvName(self, conv_id):
         for conv in self.conversations:
@@ -148,68 +151,3 @@ class EchoLayer(YowInterfaceLayer):
         print 'resetting questions and responses...'
         self.questions = db.getQuestions()
         self.responses = db.getResponses()
-
-
-    #TODO: resetSendersConversationState moet geen boolean returnen, doet reinitialize() ook niet
-    @ProtocolEntityCallback("message")
-    def onMessage(self, messageProtocolEntity):
-        #send receipt otherwise we keep receiving the same message over and
-        messageSender = messageProtocolEntity.getFrom()
-        # print 'message participants:', messageProtocolEntity.getParticipant()
-        try:
-            message = messageProtocolEntity.getBody().lower()
-            print  'incoming:', message
-            if messageProtocolEntity.getBody().lower() == self.resetmsg:
-                self.reinitialize()
-                if self.resetSendersConversationState(messageSender):
-                    print 'conversation state has been reset'
-
-            questionmatches = self.findMessageQuestionMatches(message)
-            print 'questionmatches?', questionmatches
-
-            if questionmatches:
-                for question in questionmatches:
-                    isFirstQuestionBool = self.isFirstQuestion(question)
-                    isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
-                    isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
-                    hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
-
-                    shouldReceiveResponse = self.shouldGetResponse(isFirstQuestionBool,
-                    isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
-                    print 'should receive response?', shouldReceiveResponse
-                    if shouldReceiveResponse:
-                        response = self.findMatchingResponse(question)
-                        isConvStateUpdated = self.updateConversationState(messageSender, question)
-                        print response, '\n conv state updated: ',isConvStateUpdated, '\n'
-
-                        outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                            response['text'],
-                            to = messageProtocolEntity.getFrom())
-                        self.toLower(outgoingMessageProtocolEntity)
-
-        except Exception, e:
-            print 'exception lukt not, ', e
-
-
-
-        receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-
-
-        # else:
-        #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-        #         messageProtocolEntity.getBody(),
-        #         to = messageProtocolEntity.getFrom())
-
-        self.toLower(receipt)
-        # uncomment to send msg defined in outgoingMessageProtocolEntity
-        # self.toLower(outgoingMessageProtocolEntity)
-
-    @ProtocolEntityCallback("receipt")
-    def onReceipt(self, entity):
-        ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", entity.getType(), entity.getFrom())
-        self.toLower(ack)
-
-    #Test. IQ info: http://xmpp.org/rfcs/rfc6120.html#stanzas-semantics-iq
-    @ProtocolEntityCallback("iq")
-    def onIq(self, entity):
-        print(entity)
