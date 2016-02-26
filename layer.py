@@ -38,8 +38,10 @@ class EchoLayer(YowInterfaceLayer):
                 print 'the conv name is:', conv['conv_name']
                 return conv['conv_name']
 
-    def findMessageQuestionMatches(self, messageSender, message):
+    def findMessageQuestionMatches(self, message):
+        print 'findqmatches, m:', message
         matches = []
+        print 'questions:', self.questions
         for question in self.questions:
             if (re.search(r'\b' + question['text'] + r'\b', message)):
                 matches.append(question)
@@ -155,13 +157,15 @@ class EchoLayer(YowInterfaceLayer):
         # print 'message participants:', messageProtocolEntity.getParticipant()
         try:
             message = messageProtocolEntity.getBody()
-
+            print  'incoming:', message
             if messageProtocolEntity == self.resetmsg:
                 self.reinitialize()
                 if self.resetSendersConversationState(messageSender):
                     print 'conversation state has been reset'
 
-            questionmatches = self.findMessageQuestionMatches(messageSender, message)
+            questionmatches = self.findMessageQuestionMatches(message)
+            print 'questionmatches?', questionmatches
+
             if questionmatches:
                 for question in questionmatches:
                     isFirstQuestionBool = self.isFirstQuestion(question)
@@ -182,8 +186,8 @@ class EchoLayer(YowInterfaceLayer):
                             to = messageProtocolEntity.getFrom())
                         self.toLower(outgoingMessageProtocolEntity)
 
-            except Exception, e:
-                print 'exception lukt not, ', e
+        except Exception, e:
+            print 'exception lukt not, ', e
 
 
 

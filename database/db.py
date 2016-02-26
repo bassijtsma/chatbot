@@ -80,6 +80,3 @@ class Db:
         print 'resetting...'
         self._clearDb()
         self.insertTestData()
-
-
-#
