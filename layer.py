@@ -53,7 +53,7 @@ class EchoLayer(YowInterfaceLayer):
 
 
     def isFollowUpQuestion(self, messageSender, question):
-        q_nrs = getq_nrsList(question['conv_id'])
+        q_nrs = self.getq_nrsList(question['conv_id'])
         try:
             for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
@@ -156,7 +156,7 @@ class EchoLayer(YowInterfaceLayer):
         messageSender = messageProtocolEntity.getFrom()
         # print 'message participants:', messageProtocolEntity.getParticipant()
         try:
-            message = messageProtocolEntity.getBody()
+            message = messageProtocolEntity.getBody().lower()
             print  'incoming:', message
             if messageProtocolEntity == self.resetmsg:
                 self.reinitialize()
