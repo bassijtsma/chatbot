@@ -9,14 +9,17 @@ import re
 db = Db()
 sampledata = Sampledata()
 
+env = 'test'
 # TODO: add callbacks. Simple workaround for prototype: delay with time.sleep()
 # and pray for avoiding race conditions
-# questions = sampledata.getQuestions()
-# responses = sampledata.getResponses()
-# conversations = sampledata.getConversations()
-questions = db.getQuestions()
-responses = db.getResponses()
-conversations = db.getConversations()
+if env == 'test':
+    questions = sampledata.getQuestions()
+    responses = sampledata.getResponses()
+    conversations = sampledata.getConversations()
+else:
+    questions = db.getQuestions()
+    responses = db.getResponses()
+    conversations = db.getConversations()
 
 
 resetmsg = 'chatreset'
@@ -160,6 +163,8 @@ def resetSendersConversationState(messageSender):
 
 # db.insertTestData()
 # db.resetDBToTestState()
+
+
 
 messageSender = 123
 # Simulate the chatloop

@@ -21,6 +21,7 @@ import re
 
 class EchoLayer(YowInterfaceLayer):
     db = Db()
+    incomingincomingMessageHandler = incomingMessageHandler()
     questions = db.getQuestions()
     responses = db.getResponses()
     conversations = db.getConversations()
@@ -159,13 +160,24 @@ class EchoLayer(YowInterfaceLayer):
         try:
             message = messageProtocolEntity.getBody().lower()
             print  'incoming:', message
+
+            #TODO: can be abstracted into msghandler
             if messageProtocolEntity.getBody().lower() == self.resetmsg:
                 self.reinitialize()
-                if self.resetSendersConversationState(messageSender):
-                    print 'conversation state has been reset'
+                self.resetSendersConversationState(messageSender):
+                print 'conversation state has been reset'
+
 
             questionmatches = self.findMessageQuestionMatches(message)
             print 'questionmatches?', questionmatches
+
+
+            #responses =  [{ 'responsetext' : 'responsetext'}, {'responsetext' : 'responsetext'} ]
+            # for response in responses:
+            #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
+            #         response['responsetext'],
+            #         to = messageProtocolEntity.getFrom())
+            #     self.toLower(outgoingMessageProtocolEntity)
 
             if questionmatches:
                 for question in questionmatches:
