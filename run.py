@@ -10,6 +10,7 @@ from yowsup.layers.network                     import YowNetworkLayer
 from yowsup.layers.coder                       import YowCoderLayer
 from yowsup.layers.protocol_iq                 import YowIqProtocolLayer
 from yowsup.layers.protocol_calls              import YowCallsProtocolLayer
+from yowsup.layers.logger                      import YowLoggerLayer
 from yowsup.stacks import YowStack
 from yowsup.common import YowConstants
 from yowsup.layers import YowLayerEvent

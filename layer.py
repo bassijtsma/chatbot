@@ -153,38 +153,42 @@ class EchoLayer(YowInterfaceLayer):
         #send receipt otherwise we keep receiving the same message over and
         messageSender = messageProtocolEntity.getFrom()
         # print 'message participants:', messageProtocolEntity.getParticipant()
-        message = messageProtocolEntity.getBody()
+        try:
+            message = messageProtocolEntity.getBody()
 
-        if messageProtocolEntity == self.resetmsg:
-            self.reinitialize()
-            if self.resetSendersConversationState(messageSender):
-                print 'conversation state has been reset'
+            if messageProtocolEntity == self.resetmsg:
+                self.reinitialize()
+                if self.resetSendersConversationState(messageSender):
+                    print 'conversation state has been reset'
 
-        questionmatches = self.findMessageQuestionMatches(messageSender, message)
-        if questionmatches:
-            for question in questionmatches:
-                isFirstQuestionBool = self.isFirstQuestion(question)
-                isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
-                isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
-                hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
+            questionmatches = self.findMessageQuestionMatches(messageSender, message)
+            if questionmatches:
+                for question in questionmatches:
+                    isFirstQuestionBool = self.isFirstQuestion(question)
+                    isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
+                    isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
+                    hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
 
-                shouldReceiveResponse = self.shouldGetResponse(isFirstQuestionBool,
-                isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
-                print 'should receive response?', shouldReceiveResponse
-                if shouldReceiveResponse:
-                    response = self.findMatchingResponse(question)
-                    isConvStateUpdated = self.updateConversationState(messageSender, question)
-                    print response, '\n conv state updated: ',isConvStateUpdated, '\n'
+                    shouldReceiveResponse = self.shouldGetResponse(isFirstQuestionBool,
+                    isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
+                    print 'should receive response?', shouldReceiveResponse
+                    if shouldReceiveResponse:
+                        response = self.findMatchingResponse(question)
+                        isConvStateUpdated = self.updateConversationState(messageSender, question)
+                        print response, '\n conv state updated: ',isConvStateUpdated, '\n'
 
-                    outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                        response.text,
-                        to = messageProtocolEntity.getFrom())
-                    self.toLower(outgoingMessageProtocolEntity)
+                        outgoingMessageProtocolEntity = TextMessageProtocolEntity(
+                            response.text,
+                            to = messageProtocolEntity.getFrom())
+                        self.toLower(outgoingMessageProtocolEntity)
+
+            except Exception, e:
+                print 'exception lukt not, ', e
 
 
 
         receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-        messagebody = messageProtocolEntity.getBody().lower()
+
 
         # else:
         #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
