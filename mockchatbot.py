@@ -176,15 +176,9 @@ def resetSendersConversationState(messageSender):
         return False
 
 
-# db.insertTestData()
-# db.resetDBToTestState()
-
-
-
 messageSender = 123
 # Simulate the chatloop
 while True:
-
     # Simulate incoming messages
     message = askForInput()
 

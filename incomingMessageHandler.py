@@ -7,8 +7,8 @@ import re
 import logging, sys
 
 class IncomingMessageHandler:
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     db = Db()
     questions = db.getQuestions()
     responses = db.getResponses()
@@ -29,7 +29,6 @@ class IncomingMessageHandler:
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
     #     m.getFrom() : [
-    #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
     #     m.getFrom() : [
@@ -87,16 +86,7 @@ class IncomingMessageHandler:
         return False
 
 
-    def addInitialMessageSenderRecord(self, messageSender, question):
-        self.conversationstates.setdefault(messageSender, [])
-        stateitem = {}
-        stateitem['conv_id'] = question['conv_id']
-        stateitem['mostrecentinteraction'] = datetime.utcnow()
-        stateitem['mostrecentquestion'] = question['q_nr']
-        self.conversationstates[messageSender].append(stateitem)
-
-
-    # Logic of doom
+    # Logic of doom to check if a question requires a response
     def shouldGetResponse(self, isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
         logging.debug(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut)
         if isFirstQuestion:
@@ -130,12 +120,14 @@ class IncomingMessageHandler:
                     conversationstate['mostrecentinteraction'] = datetime.utcnow()
                     conversationstate['mostrecentquestion'] = question['q_nr']
                     return True
-            # conv_id had no record in the conv state yet, add it
-            self.conversationstates[messageSender].append({'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
+            # The conversation_id conv_id had no record in the conv state yet, add it
+            self.conversationstates[messageSender].append({'conv_id' : question['conv_id'],
+            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
             return True
         # First registration of record for messageSender
         else:
-            self.conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
+            self.conversationstates[messageSender] = [{'conv_id' : question['conv_id'],
+            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
             return True
 
 
@@ -143,6 +135,7 @@ class IncomingMessageHandler:
         try:
             return(self.conversationstates.pop(messageSender, True))
         except Exception, e:
+            logging.debug('User did not have conversationstate to reset')
             return False
 
 
@@ -153,6 +146,8 @@ class IncomingMessageHandler:
         self.resetSendersConversationState()
 
 
+    # Functions entry point for layer clas. Side effect to getting responses:
+    # has to maintain a state of the current conversation
     def getResponsesForMessage(self, messageProtocolEntity):
         returnResponses = []
         messageSender = messageProtocolEntity.getFrom()
