@@ -7,8 +7,8 @@ import re
 import logging, sys
 
 class IncomingMessageHandler:
-    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     db = Db()
     questions = db.getQuestions()
     responses = db.getResponses()
@@ -88,7 +88,7 @@ class IncomingMessageHandler:
 
     # Logic of doom to check if a question requires a response
     def shouldGetResponse(self, isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
-        logging.debug(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut)
+        logging.info(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut)
         if isFirstQuestion:
             if isUserRegisteredInConversationState:
                 if hasConversationTimedOut:
@@ -135,12 +135,12 @@ class IncomingMessageHandler:
         try:
             return(self.conversationstates.pop(messageSender, True))
         except Exception, e:
-            logging.debug('User did not have conversationstate to reset')
+            logging.info('User did not have conversationstate to reset')
             return False
 
 
     def reinitialize(self):
-        logging.debug('Resetting. Fetching questions and responses from DB...')
+        logging.info('Resetting. Fetching questions and responses from DB...')
         self.questions = db.getQuestions()
         self.responses = db.getResponses()
         self.resetSendersConversationState()
@@ -154,7 +154,7 @@ class IncomingMessageHandler:
         try:
             message = messageProtocolEntity.getBody().lower()
         except Exception, e:
-            logging.debug('Fail getBody, probably different msg Type (e.g. media). Error: ', e)
+            logging.info('Fail getBody, probably different msg Type (e.g. media). Error: ', e)
             return returnResponses
 
         if message == self.resetmsg:
@@ -172,6 +172,6 @@ class IncomingMessageHandler:
                 if shouldGetResponseBool:
                     response = self.getMatchingResponse(question)
                     isConvStateUpdated = self.updateConversationState(messageSender, question)
-                    logging.debug('response: ', response, '\n conv state updated: ',isConvStateUpdated, '\n')
+                    logging.info('response: ', response, '\n conv state updated: ',isConvStateUpdated, '\n')
                     returnResponses.append({'responseText' : response['text']})
         return returnResponses

@@ -18,12 +18,12 @@ import re
 # https://github.com/tgalal/yowsup/issues/921
 
 class EchoLayer(YowInterfaceLayer):
-    incomingincomingMessageHandler = incomingMessageHandler()
+    incomingMessageHandler = IncomingMessageHandler()
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         #responses =  [{ 'responsetext' : 'responsetext'}, {'responsetext' : 'responsetext'} ]
-        responses = incomingincomingMessageHandler.getResponsesForMessage(messageProtocolEntity)
+        responses = incomingMessageHandler.getResponsesForMessage(messageProtocolEntity)
 
         for response in responses:
             outgoingMessageProtocolEntity = TextMessageProtocolEntity(response['text'],
