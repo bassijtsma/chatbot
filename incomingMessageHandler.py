@@ -4,10 +4,11 @@ from datetime                                          import time, tzinfo, date
 import datetime as dt
 import time
 import re
-
+import logging, sys
 
 class IncomingMessageHandler:
-
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     db = Db()
     questions = db.getQuestions()
     responses = db.getResponses()
@@ -16,12 +17,13 @@ class IncomingMessageHandler:
     conversationTimeoutThreshold = dt.timedelta(seconds=1)
 
     # Keeps track of the state of different conversations, so different people
-    # can talk to the bot at the same time without the chat intermingling a response
-    # messageProtocolEntity.getFrom() will be key.The most recent interaction with
-    # the bot will be tracked to figure out if the conversation has timed out and
-    # should be reset. Finally, it tracks how far into the conversation they are.
-    # conversationstates =
-    # {
+    # can talk to the bot at the same time without the chat intermingling a
+    # response.MessageProtocolEntity.getFrom() will be key.The most recent
+    # interaction with the bot will be tracked to figure out if the conversation
+    # has timed out and should be reset. Finally, it tracks how far into the
+    # conversation they are.
+
+    # conversationstates = {
     #     m.getFrom() : [
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
@@ -37,7 +39,6 @@ class IncomingMessageHandler:
     # }
     conversationstates = {}
 
-
     def findMessageQuestionMatches(self, message):
         matches = []
         for question in self.questions:
@@ -48,6 +49,11 @@ class IncomingMessageHandler:
 
     def isFirstQuestion(self, question):
         return (question['q_nr'] == 1)
+
+
+    def isUserRegisteredInConversationState(self, messageSender):
+        return (messageSender in self.conversationstates)
+
 
     # Sorts all the questions and checks whether the index of the msg (within)
     # the same conversation id) is a follow up of the most recent question
@@ -69,6 +75,7 @@ class IncomingMessageHandler:
                 q_nrs.append(question['q_nr'])
         return q_nrs
 
+
     def hasConversationTimedOut(self, messageSender, question):
         try:
             for convstate in self.conversationstates[messageSender]:
@@ -78,9 +85,6 @@ class IncomingMessageHandler:
         except Exception, e:
             return False
         return False
-
-    def isUserRegisteredInConversationState(self, messageSender):
-        return (messageSender in self.conversationstates)
 
 
     def addInitialMessageSenderRecord(self, messageSender, question):
@@ -94,13 +98,13 @@ class IncomingMessageHandler:
 
     # Logic of doom
     def shouldGetResponse(self, isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
-        print isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut
+        logging.debug(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut)
         if isFirstQuestion:
             if isUserRegisteredInConversationState:
                 if hasConversationTimedOut:
                     return True
                 else:
-                    return False # TODO ASK FOR RESET?
+                    return False # TODO hmm, ask for a reset?
             else:
                 return True
         else:
@@ -142,47 +146,37 @@ class IncomingMessageHandler:
             return False
 
 
-    #  TODO: also have to reset state, otherwise question_nrs dont align
     def reinitialize(self):
-        print 'resetting questions and responses...'
+        logging.debug('Resetting. Fetching questions and responses from DB...')
         self.questions = db.getQuestions()
         self.responses = db.getResponses()
+        self.resetSendersConversationState()
 
 
-    def handleIncomingMessage(self, messageProtocolEntity):
-
+    def getResponsesForMessage(self, messageProtocolEntity):
         returnResponses = []
         messageSender = messageProtocolEntity.getFrom()
-
         try:
             message = messageProtocolEntity.getBody().lower()
         except Exception, e:
-            print 'Fail getBody, probably different msg Type (e.g. media). Error: ', e
+            logging.debug('Fail getBody, probably different msg Type (e.g. media). Error: ', e)
             return returnResponses
 
         if message == self.resetmsg:
             self.reinitialize()
-            self.resetSendersConversationState()
-            print 'conversation state has been reset'
 
         questionmatches = self.findMessageQuestionMatches(message)
-
         if questionmatches:
             for question in questionmatches:
-                # could also remove Bool vars and simply call fn with fn calls as args. Dunno
-                isFirstQuestionBool = self.isFirstQuestion(question)
-                isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
-                isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
-                hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
-
-                shouldGetResponseBool = self.shouldGetResponse(isFirstQuestionBool,
-                isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
-                print 'should receive response?', shouldGetResponseBool
+                shouldGetResponseBool = self.shouldGetResponse(
+                self.isFirstQuestion(question),
+                self.isUserRegisteredInConversationState(messageSender),
+                self.isFollowUpQuestion(messageSender, question),
+                self.hasConversationTimedOut(messageSender, question)
+                )
                 if shouldGetResponseBool:
                     response = self.getMatchingResponse(question)
                     isConvStateUpdated = self.updateConversationState(messageSender, question)
-                    print response, '\n conv state updated: ',isConvStateUpdated, '\n'
-
+                    logging.debug('response: ', response, '\n conv state updated: ',isConvStateUpdated, '\n')
                     returnResponses.append({'responseText' : response['text']})
-
         return returnResponses

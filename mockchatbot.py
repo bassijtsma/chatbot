@@ -1,10 +1,25 @@
+'''
+Mockchatbot with keyboard input instead of whatsapp chat chatinput.
+
+SUPERNAIVE bruteforce solution for prototype implementation.
+1. A message comes in
+2. Go through all defined questions, and get all matches
+3. For all matches, see if the prerequisites for them have been met:
+    3a. its the first question in the conversation id, or
+    3a. less than <conversationTimeoutThreshold> time ago, or
+    3b. all questions that should have come before were already messaged
+4. If the prerequisites have been met, go through all responses, and find the
+ corresponding answer to the question
+5. Echo the corresponding question
+6. Update the conversationstate
+
+'''
 from database.sampledata import Sampledata
 from database.db import Db
 from datetime import time, tzinfo, datetime, timedelta
 import datetime as dt
 import time
 import re
-
 
 db = Db()
 sampledata = Sampledata()
@@ -195,38 +210,3 @@ while True:
     else:
         # no match, just wait for next input. TODO: any handling needed?
         continue
-
-
-'''
-SUPERNAIVE bruteforce solution for prototype implementation.
-1. A message comes in
-2. Go through all defined questions, and get all matches
-3. For all matches, see if the prerequisites for them have been met:
-    3a. its the first question in the conversation id, or
-    3a. less than <conversationTimeoutThreshold> time ago, or
-    3b. all questions that should have come before were already messaged
-4. If the prerequisites have been met, go through all responses, and find the
- corresponding answer to the question
-5. Echo the corresponding question
-6. Update the conversationstate
-
-
-Logictree for sending response shown below. TRUE should receive response,
-FALSE should not, RESET should ask the user to reset (still TODO). 4 Booleans:
-isFirstQuestion
-isFollowUpQuestion
-isUserRegisteredInConversationState
-hasConversationTimedOut
-
-isFirstQuestion:
-    yes: isUserRegisteredInConversationState:
-        no: TRUE
-        yes: hasConversationTimedOut
-            yes: TRUE
-            no: RESET
-    no: isUserRegisteredInConversationState:
-        no: FALSE
-        yes: isFollowUpQuestion:
-            yes: TRUE
-            no: FALSE
-'''
