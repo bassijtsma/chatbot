@@ -151,60 +151,25 @@ class EchoLayer(YowInterfaceLayer):
         self.responses = db.getResponses()
 
 
-    #TODO: resetSendersConversationState moet geen boolean returnen, doet reinitialize() ook niet
+
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-        #send receipt otherwise we keep receiving the same message over and
-        messageSender = messageProtocolEntity.getFrom()
-        # print 'message participants:', messageProtocolEntity.getParticipant()
-        try:
-            message = messageProtocolEntity.getBody().lower()
-            print  'incoming:', message
+        responses = handleIncomingMessage(messageProtocolEntity)
 
-            #TODO: can be abstracted into msghandler
-            if messageProtocolEntity.getBody().lower() == self.resetmsg:
-                self.reinitialize()
-                self.resetSendersConversationState(messageSender):
-                print 'conversation state has been reset'
+        #responses =  [{ 'responsetext' : 'responsetext'}, {'responsetext' : 'responsetext'} ]
+        for response in responses:
+            outgoingMessageProtocolEntity = TextMessageProtocolEntity(response['text'],
+                to = messageProtocolEntity.getFrom())
+            self.toLower(outgoingMessageProtocolEntity)
 
 
-            questionmatches = self.findMessageQuestionMatches(message)
-            print 'questionmatches?', questionmatches
 
 
-            #responses =  [{ 'responsetext' : 'responsetext'}, {'responsetext' : 'responsetext'} ]
             # for response in responses:
             #     outgoingMessageProtocolEntity = TextMessageProtocolEntity(
             #         response['responsetext'],
             #         to = messageProtocolEntity.getFrom())
             #     self.toLower(outgoingMessageProtocolEntity)
-
-            if questionmatches:
-                for question in questionmatches:
-                    isFirstQuestionBool = self.isFirstQuestion(question)
-                    isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
-                    isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
-                    hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
-
-                    shouldReceiveResponse = self.shouldGetResponse(isFirstQuestionBool,
-                    isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
-                    print 'should receive response?', shouldReceiveResponse
-                    if shouldReceiveResponse:
-                        response = self.findMatchingResponse(question)
-                        isConvStateUpdated = self.updateConversationState(messageSender, question)
-                        print response, '\n conv state updated: ',isConvStateUpdated, '\n'
-
-                        outgoingMessageProtocolEntity = TextMessageProtocolEntity(
-                            response['text'],
-                            to = messageProtocolEntity.getFrom())
-                        self.toLower(outgoingMessageProtocolEntity)
-
-        except Exception, e:
-            print 'exception lukt not, ', e
-
-
-
-        receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
 
 
         # else:
@@ -212,6 +177,7 @@ class EchoLayer(YowInterfaceLayer):
         #         messageProtocolEntity.getBody(),
         #         to = messageProtocolEntity.getFrom())
 
+        receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
         self.toLower(receipt)
         # uncomment to send msg defined in outgoingMessageProtocolEntity
         # self.toLower(outgoingMessageProtocolEntity)

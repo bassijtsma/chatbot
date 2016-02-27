@@ -13,7 +13,7 @@ class IncomingMessageHandler:
     responses = db.getResponses()
     conversations = db.getConversations()
     resetmsg = 'chatreset'
-    conversationTimeoutThreshold = dt.timedelta(seconds=5)
+    conversationTimeoutThreshold = dt.timedelta(seconds=1)
 
     # Keeps track of the state of different conversations, so different people
     # can talk to the bot at the same time without the chat intermingling a response
@@ -37,11 +37,6 @@ class IncomingMessageHandler:
     # }
     conversationstates = {}
 
-    def getConvName(self, conv_id):
-        for conv in self.conversations:
-            if conv_id == conv['conv_id']:
-                print 'the conv name is:', conv['conv_name']
-                return conv['conv_name']
 
     def findMessageQuestionMatches(self, message):
         matches = []
@@ -54,9 +49,10 @@ class IncomingMessageHandler:
     def isFirstQuestion(self, question):
         return (question['q_nr'] == 1)
 
-
+    # Sorts all the questions and checks whether the index of the msg (within)
+    # the same conversation id) is a follow up of the most recent question
     def isFollowUpQuestion(self, messageSender, question):
-        q_nrs = self.getq_nrsList(question['conv_id'])
+        q_nrs = self.getq_nrsListForConvId(question['conv_id'])
         try:
             for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
@@ -66,7 +62,7 @@ class IncomingMessageHandler:
         return False
 
 
-    def getq_nrsList(self, conv_id):
+    def getq_nrsListForConvId(self, conv_id):
         q_nrs = []
         for question in self.questions:
             if conv_id == question['conv_id']:
@@ -78,7 +74,7 @@ class IncomingMessageHandler:
             for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
                     currenttime = datetime.utcnow()
-                    return (currenttime - convstate['mostrecentinteraction']) > conversationTimeoutThreshold
+                    return (currenttime - convstate['mostrecentinteraction']) > self.conversationTimeoutThreshold
         except Exception, e:
             return False
         return False
@@ -117,7 +113,7 @@ class IncomingMessageHandler:
                 return False
 
 
-    def findMatchingResponse(self,question):
+    def getMatchingResponse(self,question):
         for response in self.responses:
             if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
                 return response
@@ -151,3 +147,42 @@ class IncomingMessageHandler:
         print 'resetting questions and responses...'
         self.questions = db.getQuestions()
         self.responses = db.getResponses()
+
+
+    def handleIncomingMessage(self, messageProtocolEntity):
+
+        returnResponses = []
+        messageSender = messageProtocolEntity.getFrom()
+
+        try:
+            message = messageProtocolEntity.getBody().lower()
+        except Exception, e:
+            print 'Fail getBody, probably different msg Type (e.g. media). Error: ', e
+            return returnResponses
+
+        if message == self.resetmsg:
+            self.reinitialize()
+            self.resetSendersConversationState()
+            print 'conversation state has been reset'
+
+        questionmatches = self.findMessageQuestionMatches(message)
+
+        if questionmatches:
+            for question in questionmatches:
+                # could also remove Bool vars and simply call fn with fn calls as args. Dunno
+                isFirstQuestionBool = self.isFirstQuestion(question)
+                isUserRegisteredInConversationStateBool = self.isUserRegisteredInConversationState(messageSender)
+                isFollowUpQuestionBool = self.isFollowUpQuestion(messageSender, question)
+                hasConversationTimedOutBool = self.hasConversationTimedOut(messageSender, question)
+
+                shouldGetResponseBool = self.shouldGetResponse(isFirstQuestionBool,
+                isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
+                print 'should receive response?', shouldGetResponseBool
+                if shouldGetResponseBool:
+                    response = self.getMatchingResponse(question)
+                    isConvStateUpdated = self.updateConversationState(messageSender, question)
+                    print response, '\n conv state updated: ',isConvStateUpdated, '\n'
+
+                    returnResponses.append({'responseText' : response['text']})
+
+        return returnResponses
