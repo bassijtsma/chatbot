@@ -22,11 +22,11 @@ class EchoLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-        #responses =  [{ 'responsetext' : 'responsetext'}, {'responsetext' : 'responsetext'} ]
-        responses = incomingMessageHandler.getResponsesForMessage(messageProtocolEntity)
+        #responses =  [{ 'responseText' : 'responsetext'}, {'responseText' : 'responsetext'} ]
+        responses = self.incomingMessageHandler.getResponsesForMessage(messageProtocolEntity)
 
         for response in responses:
-            outgoingMessageProtocolEntity = TextMessageProtocolEntity(response['text'],
+            outgoingMessageProtocolEntity = TextMessageProtocolEntity(response['responseText'],
                 to = messageProtocolEntity.getFrom())
             self.toLower(outgoingMessageProtocolEntity)
 
