@@ -14,37 +14,46 @@ SUPERNAIVE bruteforce solution for prototype implementation.
 6. Update the conversationstate
 
 '''
-from database.sampledata                               import Sampledata
-from database.db                                       import Db
-from datetime                                          import time, tzinfo, datetime, timedelta
+from database.sampledata import Sampledata
+from database.db import Db
+from datetime import time, tzinfo, datetime, timedelta
 import datetime as dt
 import time
 import re
-import logging, sys
 
-
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-# logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 db = Db()
-sb = Sampledata()
-questions = sb.getQuestions()
-responses = sb.getResponses()
-conversations = sb.getConversations()
-resetmsg = 'chatreset'
-conversationTimeoutThreshold = dt.timedelta(seconds=1)
+sampledata = Sampledata()
 
+env = 'test'
+# TODO: add callbacks. Simple workaround for prototype: delay with time.sleep()
+# and pray for avoiding race conditions
+if env == 'test':
+    questions = sampledata.getQuestions()
+    responses = sampledata.getResponses()
+    conversations = sampledata.getConversations()
+else:
+    questions = db.getQuestions()
+    responses = db.getResponses()
+    conversations = db.getConversations()
+
+
+resetmsg = 'chatreset'
+conversationTimeoutThreshold = dt.timedelta(seconds=5)
+
+conversationstates = {}
 # Keeps track of the state of different conversations, so different people
-# can talk to the bot at the same time without the chat intermingling a
-# response.MessageProtocolEntity.getFrom() will be key.The most recent
-# interaction with the bot will be tracked to figure out if the conversation
-# has timed out and should be reset. Finally, it tracks how far into the
-# conversation they are.
-# conversationstates = {
+# can talk to the bot at the same time without the chat intermingling a response
+# messageProtocolEntity.getFrom() will be key.The most recent interaction with
+# the bot will be tracked to figure out if the conversation has timed out and
+# should be reset. Finally, it tracks how far into the conversation they are.
+# conversationstates =
+# {
 #     m.getFrom() : [
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
 #     m.getFrom() : [
+#         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}],
 #     m.getFrom() : [
@@ -52,17 +61,19 @@ conversationTimeoutThreshold = dt.timedelta(seconds=1)
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
 # }
-conversationstates = {}
-
-
-
 
 def askForInput():
     input = raw_input("Your chat message:\n")
     return input.lower()
 
 
-def findMessageQuestionMatches(message):
+def getConvName(conv_id):
+    for conv in conversations:
+        if conv_id == conv['conv_id']:
+            print 'the conv name is:', conv['conv_name']
+            return conv['conv_name']
+
+def findMessageQuestionMatches(messageSender, message):
     matches = []
     for question in questions:
         if (re.search(r'\b' + question['text'] + r'\b', message)):
@@ -74,14 +85,8 @@ def isFirstQuestion(question):
     return (question['q_nr'] == 1)
 
 
-def isUserRegisteredInConversationState(messageSender):
-    return (messageSender in conversationstates)
-
-
-# Sorts all the questions and checks whether the index of the msg (within)
-# the same conversation id) is a follow up of the most recent question
 def isFollowUpQuestion(messageSender, question):
-    q_nrs = getq_nrsListForConvId(question['conv_id'])
+    q_nrs = getq_nrsList(question['conv_id'])
     try:
         for convstate in conversationstates[messageSender]:
             if convstate['conv_id'] == question['conv_id']:
@@ -91,13 +96,12 @@ def isFollowUpQuestion(messageSender, question):
     return False
 
 
-def getq_nrsListForConvId(conv_id):
+def getq_nrsList(conv_id):
     q_nrs = []
     for question in questions:
         if conv_id == question['conv_id']:
             q_nrs.append(question['q_nr'])
     return q_nrs
-
 
 def hasConversationTimedOut(messageSender, question):
     try:
@@ -109,16 +113,28 @@ def hasConversationTimedOut(messageSender, question):
         return False
     return False
 
+def isUserRegisteredInConversationState(messageSender):
+    return (messageSender in conversationstates)
 
-# Logic of doom to check if a question requires a response
+
+def addInitialMessageSenderRecord(messageSender, question):
+    conversationstates.setdefault(messageSender, [])
+    stateitem = {}
+    stateitem['conv_id'] = question['conv_id']
+    stateitem['mostrecentinteraction'] = datetime.utcnow()
+    stateitem['mostrecentquestion'] = question['q_nr']
+    conversationstates[messageSender].append(stateitem)
+
+
+# Logic of doom
 def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
-    logging.info([isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut])
+    print isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut
     if isFirstQuestion:
         if isUserRegisteredInConversationState:
             if hasConversationTimedOut:
                 return True
             else:
-                return False # TODO hmm, ask for a reset?
+                return False # TODO ASK FOR RESET?
         else:
             return True
     else:
@@ -131,7 +147,7 @@ def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFo
             return False
 
 
-def getMatchingResponse(question):
+def findMatchingResponse(question):
     for response in responses:
         if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
             return response
@@ -144,14 +160,12 @@ def updateConversationState(messageSender, question):
                 conversationstate['mostrecentinteraction'] = datetime.utcnow()
                 conversationstate['mostrecentquestion'] = question['q_nr']
                 return True
-        # The conversation_id conv_id had no record in the conv state yet, add it
-        conversationstates[messageSender].append({'conv_id' : question['conv_id'],
-        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
+        # conv_id had no record in the conv state yet, add it
+        conversationstates[messageSender].append({'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
         return True
     # First registration of record for messageSender
     else:
-        conversationstates[messageSender] = [{'conv_id' : question['conv_id'],
-        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
+        conversationstates[messageSender] = [{'conv_id' : question['conv_id'], 'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
         return True
 
 
@@ -159,50 +173,34 @@ def resetSendersConversationState(messageSender):
     try:
         return(conversationstates.pop(messageSender, True))
     except Exception, e:
-        logging.info('User did not have conversationstate to reset')
         return False
 
 
-def reinitialize(self):
-    logging.info('Resetting. Fetching questions and responses from DB...')
-    questions = db.getQuestions()
-    responses = db.getResponses()
-    resetSendersConversationState()
-
-
-# Functions entry point for layer clas. Side effect to getting responses:
-# has to maintain a state of the current conversation
-def getResponsesForMessage(inputText):
-    returnResponses = []
-    messageSender = 123
-    try:
-        message = inputText
-    except Exception, e:
-        logging.info(['Fail getBody, probably different msg Type (e.g. media). Error: ', e])
-        return returnResponses
+messageSender = 123
+# Simulate the chatloop
+while True:
+    # Simulate incoming messages
+    message = askForInput()
 
     if message == resetmsg:
-        reinitialize()
+        if resetSendersConversationState(messageSender):
+            print 'conversation state has been reset'
 
-    questionmatches = findMessageQuestionMatches(message)
+    questionmatches = findMessageQuestionMatches(messageSender, message)
     if questionmatches:
         for question in questionmatches:
-            shouldGetResponseBool = shouldGetResponse(
-            isFirstQuestion(question),
-            isUserRegisteredInConversationState(messageSender),
-            isFollowUpQuestion(messageSender, question),
-            hasConversationTimedOut(messageSender, question)
-            )
-            if shouldGetResponseBool:
-                response = getMatchingResponse(question)
+            isFirstQuestionBool = isFirstQuestion(question)
+            isFollowUpQuestionBool = isFollowUpQuestion(messageSender, question)
+            isUserRegisteredInConversationStateBool = isUserRegisteredInConversationState(messageSender)
+            hasConversationTimedOutBool = hasConversationTimedOut(messageSender, question)
+
+            shouldReceiveResponse = shouldGetResponse(isFirstQuestionBool,
+            isUserRegisteredInConversationStateBool, isFollowUpQuestionBool, hasConversationTimedOutBool)
+            print 'should receive response?', shouldReceiveResponse
+            if shouldReceiveResponse:
+                response = findMatchingResponse(question)
                 isConvStateUpdated = updateConversationState(messageSender, question)
-                print 'response: ', response, '\n conv state updated: ', isConvStateUpdated, '\n'
-                returnResponses.append({'responseText' : response['text']})
-    return returnResponses
-
-
-while True:
-    inputText = askForInput()
-    returnResponses = getResponsesForMessage(inputText)
-    for returnResponse in returnResponses:
-        print returnResponse
+                print response, '\n conv state updated: ',isConvStateUpdated, '\n'
+    else:
+        # no match, just wait for next input. TODO: any handling needed?
+        continue
