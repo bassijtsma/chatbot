@@ -22,7 +22,6 @@ class IncomingMessageHandler:
     # interaction with the bot will be tracked to figure out if the conversation
     # has timed out and should be reset. Finally, it tracks how far into the
     # conversation they are.
-
     # conversationstates = {
     #     m.getFrom() : [
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
