@@ -25,7 +25,7 @@ class Db:
 
     def getQuestions(self):
         # cursor =  self.db.questions.find().sort({'conv_id': 1, 'q_nr' : 1})
-        cursor =  self.db.questions.find().sort('conv_id', 1)
+        cursor =  self.db.questions.find().sort([('conv_id', 1), ('q_nr', 1)])
         for document in cursor:
             self.questions.append(document)
         print 'nr of questions: ', len(self.questions)
@@ -33,7 +33,7 @@ class Db:
 
     def getResponses(self):
         # cursor = self.db.responses.find().sort({'conv_id': 1, 'r_nr' : 1})
-        cursor = self.db.responses.find().sort('conv_id', 1)
+        cursor = self.db.responses.find().sort([('conv_id', 1), ('q_nr', 1)])
         for document in cursor:
             self.responses.append(document)
         print 'nr of responses: ', len(self.responses)
