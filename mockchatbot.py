@@ -133,7 +133,7 @@ def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFo
 
 def getMatchingResponse(question):
     for response in responses:
-        if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
+        if question['conv_id'] == response['conv_id'] and question['_id'] == response['response_to_q_id']:
             return response
 
 
