@@ -108,7 +108,7 @@ class IncomingMessageHandler:
 
     def getMatchingResponse(self,question):
         for response in self.responses:
-            if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
+            if question['conv_id'] == response['conv_id'] and question['_id'] == response['response_to_q_id']:
                 return response
 
 
