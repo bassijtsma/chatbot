@@ -200,6 +200,7 @@ def getResponsesForMessage(inputText):
                 returnResponses.append({'responseText' : response['text']})
     return returnResponses
 
+db.resetDBToTestState()
 
 while True:
     inputText = askForInput()

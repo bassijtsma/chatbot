@@ -61,7 +61,7 @@ class Db:
         try:
             self._clearQuestions()
             self._clearResponses()
-            self._clearConvs()
+            self._clearConvsations()
             return True
         except Exception, e:
             print e

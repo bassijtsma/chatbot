@@ -39,7 +39,7 @@ class Sampledata:
     convs = [
         { "conv_id" : 1, "conv_name" : "first chat"},
         { "conv_id" : 2, "conv_name" : "second chat"},
-        { "conv_id" : 2, "conv_name" : "third chat"}
+        { "conv_id" : 3, "conv_name" : "third chat"}
     ]
 
 
