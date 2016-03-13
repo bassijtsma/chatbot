@@ -20,6 +20,19 @@ import re
 class EchoLayer(YowInterfaceLayer):
     incomingMessageHandler = IncomingMessageHandler()
 
+    def onEvent(self, layerEvent):
+        if layerEvent.getName() == YowNetworkLayer.EVENT_STATE_CONNECTED:
+            self.disconecting = False
+        if layerEvent.getName() == YowNetworkLayer.EVENT_STATE_DISCONNECTED and not self.disconecting:
+            print "Disconnected- %s" % layerEvent.getArg("reason")
+            self.disconecting = True
+            if self.callback_disconnect is not None:
+                print 'self clalback disconnect is not None.'
+                self.getStack().broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
+                print 'reconnected'
+                # self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
+                # self.callback_disconnect( layerEvent.getArg("reason") )
+
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         #responses =  [{ 'responseText' : 'responsetext'}, {'responseText' : 'responsetext'} ]
