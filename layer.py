@@ -6,32 +6,27 @@ from database.sampledata                               import Sampledata
 from database.db                                       import Db
 from datetime                                          import time, tzinfo, datetime, timedelta
 from incomingMessageHandler                            import IncomingMessageHandler
+from yowsup.layers.network                             import YowNetworkLayer
+from yowsup.layers                                     import YowLayerEvent
 import datetime as dt
 import time
 import re
 
 
-#TODO in case of constant disconnects:
-# Event listener that listens to disconnects, and attempt reconnect
-# org.openwhatsapp.yowsup.event.network.disconnected
-# verify if reconnecting on discnonecting is feasible. something like:
-# https://github.com/tgalal/yowsup/issues/921
+ues/921
 
 class EchoLayer(YowInterfaceLayer):
     incomingMessageHandler = IncomingMessageHandler()
 
     def onEvent(self, layerEvent):
-        if layerEvent.getName() == YowNetworkLayer.EVENT_STATE_CONNECTED:
-            self.disconecting = False
-        if layerEvent.getName() == YowNetworkLayer.EVENT_STATE_DISCONNECTED and not self.disconecting:
+        # In case of constant disconnects.  https://github.com/tgalal/yowsup/iss
+        print 'event:', layerEvent.getName()
+        if layerEvent.getName() == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             print "Disconnected- %s" % layerEvent.getArg("reason")
-            self.disconecting = True
-            if self.callback_disconnect is not None:
-                print 'self clalback disconnect is not None.'
-                self.getStack().broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
-                print 'reconnected'
-                # self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
-                # self.callback_disconnect( layerEvent.getArg("reason") )
+            self.getStack().broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
+            print 'reconnected'
+            # self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
+
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
