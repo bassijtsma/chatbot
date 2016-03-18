@@ -145,8 +145,8 @@ class IncomingMessageHandler:
         self.resetSendersConversationState()
 
 
-    # Functions entry point for layer clas. Side effect to getting responses:
-    # has to maintain a state of the current conversation
+    # Function entry point for layer clas. Side effect for getting responses:
+    # has to maintain a state of the current conversation. Probably not scaleable
     def getResponsesForMessage(self, messageProtocolEntity):
         returnResponses = []
         messageSender = messageProtocolEntity.getFrom()
@@ -158,6 +158,8 @@ class IncomingMessageHandler:
 
         if message == self.resetmsg:
             self.reinitialize()
+
+        print 'incoming msg: ', message
 
         questionmatches = self.findMessageQuestionMatches(message)
         if questionmatches:

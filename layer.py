@@ -13,7 +13,6 @@ import time
 import re
 
 
-ues/921
 
 class EchoLayer(YowInterfaceLayer):
     incomingMessageHandler = IncomingMessageHandler()
