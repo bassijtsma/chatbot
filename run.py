@@ -50,5 +50,5 @@ if __name__==  "__main__":
     stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))   #sending the connect signal
 
     print 'going into stack loop'
-    stack.loop(timeout = 0.5, discrete = 0.5) #this is the program mainloop
+    stack.loop(timeout = 15, discrete = 15) #this is the program mainloop
     print 'stack loop finished'
