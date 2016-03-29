@@ -52,7 +52,7 @@ class IncomingMessageHandler:
     def isUserRegisteredInConversationState(self, messageSender):
         return (messageSender in self.conversationstates)
 
-
+    # TODO REFACTOR will not work
     # Sorts all the questions and checks whether the index of the msg (within)
     # the same conversation id) is a follow up of the most recent question
     def isFollowUpQuestion(self, messageSender, question):

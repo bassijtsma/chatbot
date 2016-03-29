@@ -12,6 +12,7 @@ class Db:
     env = 'prod'
     client = MongoClient()
     # client = MongoClient("mongodb://mongodb0.example.net:55888")
+    messages = []
     questions = []
     responses = []
     conversations = []
@@ -22,6 +23,13 @@ class Db:
             self.db = self.client.prod
         else:
             self.db = self.client.test
+
+    def getMessages(self):
+        cursor = self.db.messages.find().sort([('conv_id', 1), ('q_nr', 1)])
+        for document in cursor:
+            self.messages.append(document)
+        print 'nr of messages: ', len(self.messages)
+        return self.messages
 
     def getQuestions(self):
         # cursor =  self.db.questions.find().sort({'conv_id': 1, 'q_nr' : 1})
@@ -45,6 +53,10 @@ class Db:
             self.conversations.append(document)
         return self.conversations
 
+    def _clearMessages(self):
+        cursor = self.db.messages.drop()
+        return True
+
     def _clearQuestions(self):
         cursor = self.db.questions.drop()
         return True
@@ -61,6 +73,7 @@ class Db:
         try:
             self._clearQuestions()
             self._clearResponses()
+            self._clearMessages()
             self._clearConvsations()
             return True
         except Exception, e:
@@ -68,12 +81,14 @@ class Db:
             return False
 
     def insertTestData(self):
-        testquestions = self.sampledata.getQuestions()
-        testresponses = self.sampledata.getResponses()
+        # testquestions = self.sampledata.getQuestions()
+        # testresponses = self.sampledata.getResponses()
+        testmessages = self.sampledata.getMessages()
         testconvs = self.sampledata.getConversations()
         print 'inserting...'
-        self.db.questions.insert(testquestions)
-        self.db.responses.insert(testresponses)
+        # self.db.questions.insert(testquestions)
+        # self.db.responses.insert(testresponses)
+        self.db.messages.insert(testmessages)
         self.db.conversations.insert(testconvs)
 
     def resetDBToTestState(self):
