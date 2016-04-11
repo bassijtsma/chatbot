@@ -27,11 +27,10 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 db = Db()
 sb = Sampledata()
-questions = sb.getQuestions()
-responses = sb.getResponses()
+messages = db.getMessages()
 conversations = sb.getConversations()
 resetmsg = 'chatreset'
-conversationTimeoutThreshold = dt.timedelta(seconds=1)
+conversationTimeoutThreshold = dt.timedelta(seconds=10)
 
 # Keeps track of the state of different conversations, so different people
 # can talk to the bot at the same time without the chat intermingling a
@@ -52,9 +51,12 @@ conversationTimeoutThreshold = dt.timedelta(seconds=1)
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
 #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
 # }
+#
+# messages: [
+#   { "m_nr" : 1, "qtext" : "hoi1", "rtext" : "doei 1", "is_alternative" : False, "conv_id" : 1 },
+#        ..]
+
 conversationstates = {}
-
-
 
 
 def askForInput():
@@ -62,16 +64,18 @@ def askForInput():
     return input.lower()
 
 
-def findMessageQuestionMatches(message):
+# searces through self.messages to find if the incoming message
+# matches any of the preprogramming input
+def findMessageQuestionMatches(incomingmessage):
     matches = []
-    for question in questions:
-        if (re.search(r'\b' + question['text'] + r'\b', message)):
-            matches.append(question)
+    for message in messages:
+        if (re.search(r'\b' + message['qtext'] + r'\b', incomingmessage)):
+            matches.append(message)
     return matches
 
 
 def isFirstQuestion(question):
-    return (question['q_nr'] == 1)
+    return (question['m_nr'] == 1)
 
 
 def isUserRegisteredInConversationState(messageSender):
@@ -81,22 +85,22 @@ def isUserRegisteredInConversationState(messageSender):
 # Sorts all the questions and checks whether the index of the msg (within)
 # the same conversation id) is a follow up of the most recent question
 def isFollowUpQuestion(messageSender, question):
-    q_nrs = getq_nrsListForConvId(question['conv_id'])
+    m_nrs = getm_nrsListForConvId(question['conv_id'])
     try:
         for convstate in conversationstates[messageSender]:
             if convstate['conv_id'] == question['conv_id']:
-                return (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
+                return (m_nrs.index(convstate['mostrecentquestion']) + 1 == m_nrs.index(question['m_nr']))
     except Exception, e:
         return False
     return False
 
 
-def getq_nrsListForConvId(conv_id):
-    q_nrs = []
-    for question in questions:
-        if conv_id == question['conv_id']:
-            q_nrs.append(question['q_nr'])
-    return q_nrs
+def getm_nrsListForConvId(conv_id):
+    m_nrs = []
+    for msg in messages:
+        if conv_id == msg['conv_id']:
+            m_nrs.append(msg['m_nr'])
+    return m_nrs
 
 
 def hasConversationTimedOut(messageSender, question):
@@ -131,27 +135,21 @@ def shouldGetResponse(isFirstQuestion, isUserRegisteredInConversationState, isFo
             return False
 
 
-def getMatchingResponse(question):
-    for response in responses:
-        if question['conv_id'] == response['conv_id'] and question['_id'] == response['response_to_q_id']:
-            return response
-
-
 def updateConversationState(messageSender, question):
     if messageSender in conversationstates:
         for conversationstate in conversationstates[messageSender]:
             if conversationstate['conv_id'] == question['conv_id']:
                 conversationstate['mostrecentinteraction'] = datetime.utcnow()
-                conversationstate['mostrecentquestion'] = question['q_nr']
+                conversationstate['mostrecentquestion'] = question['m_nr']
                 return True
         # The conversation_id conv_id had no record in the conv state yet, add it
         conversationstates[messageSender].append({'conv_id' : question['conv_id'],
-        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
+        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['m_nr']})
         return True
     # First registration of record for messageSender
     else:
         conversationstates[messageSender] = [{'conv_id' : question['conv_id'],
-        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
+        'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['m_nr']}]
         return True
 
 
@@ -165,9 +163,7 @@ def resetSendersConversationState(messageSender):
 
 def reinitialize(self):
     logging.info('Resetting. Fetching questions and responses from DB...')
-    questions = db.getQuestions()
-    responses = db.getResponses()
-    resetSendersConversationState()
+    messages = db.getMessages()
 
 
 # Functions entry point for layer clas. Side effect to getting responses:
@@ -194,10 +190,10 @@ def getResponsesForMessage(inputText):
             hasConversationTimedOut(messageSender, question)
             )
             if shouldGetResponseBool:
-                response = getMatchingResponse(question)
+                response = question['rtext']
                 isConvStateUpdated = updateConversationState(messageSender, question)
                 print 'response: ', response, '\n conv state updated: ', isConvStateUpdated, '\n'
-                returnResponses.append({'responseText' : response['text']})
+                returnResponses.append({'responseText' : response})
     return returnResponses
 
 db.resetDBToTestState()

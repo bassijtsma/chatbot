@@ -10,11 +10,10 @@ class IncomingMessageHandler:
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     db = Db()
-    questions = db.getQuestions()
-    responses = db.getResponses()
+    messages = db.getMessages()
     conversations = db.getConversations()
     resetmsg = 'chatreset'
-    conversationTimeoutThreshold = dt.timedelta(seconds=1)
+    conversationTimeoutThreshold = dt.timedelta(seconds=10)
 
     # Keeps track of the state of different conversations, so different people
     # can talk to the bot at the same time without the chat intermingling a
@@ -35,18 +34,25 @@ class IncomingMessageHandler:
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr},
     #         {conv_id : x, mostrecentinteraction: timestamp, mostrecentquestion: question_nr}]
     # }
+    #
+    # messages: [
+    #   { "m_nr" : 1, "qtext" : "hoi1", "rtext" : "doei 1", "is_alternative" : False, "conv_id" : 1 },
+    #        ..]
+
     conversationstates = {}
 
-    def findMessageQuestionMatches(self, message):
+    # searces through self.messages to find if the incoming message
+    # matches any of the preprogramming input
+    def findMessageQuestionMatches(self, incomingmessage):
         matches = []
-        for question in self.questions:
-            if (re.search(r'\b' + question['text'] + r'\b', message)):
-                matches.append(question)
+        for message in self.messages:
+            if (re.search(r'\b' + message['qtext'] + r'\b', incomingmessage)):
+                matches.append(message)
         return matches
 
 
     def isFirstQuestion(self, question):
-        return (question['q_nr'] == 1)
+        return (question['m_nr'] == 1)
 
 
     def isUserRegisteredInConversationState(self, messageSender):
@@ -56,22 +62,22 @@ class IncomingMessageHandler:
     # Sorts all the questions and checks whether the index of the msg (within)
     # the same conversation id) is a follow up of the most recent question
     def isFollowUpQuestion(self, messageSender, question):
-        q_nrs = self.getq_nrsListForConvId(question['conv_id'])
+        m_nrs = self.getm_nrsListForConvId(question['conv_id'])
         try:
             for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
-                    return (q_nrs.index(convstate['mostrecentquestion']) + 1 == q_nrs.index(question['q_nr']))
+                    return (m_nrs.index(convstate['mostrecentquestion']) + 1 == m_nrs.index(question['m_nr']))
         except Exception, e:
             return False
         return False
 
 
-    def getq_nrsListForConvId(self, conv_id):
-        q_nrs = []
-        for question in self.questions:
-            if conv_id == question['conv_id']:
-                q_nrs.append(question['q_nr'])
-        return q_nrs
+    def getm_nrsListForConvId(self, conv_id):
+        m_nrs = []
+        for msg in self.messages:
+            if conv_id == msg['conv_id']:
+                m_nrs.append(msg['m_nr'])
+        return m_nrs
 
 
     def hasConversationTimedOut(self, messageSender, question):
@@ -86,6 +92,7 @@ class IncomingMessageHandler:
 
 
     # Logic of doom to check if a question requires a response
+    # probably better with switch statement
     def shouldGetResponse(self, isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
         logging.info([isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut])
         if isFirstQuestion:
@@ -106,27 +113,21 @@ class IncomingMessageHandler:
                 return False
 
 
-    def getMatchingResponse(self,question):
-        for response in self.responses:
-            if question['conv_id'] == response['conv_id'] and question['q_nr'] == response['response_to_q']:
-                return response
-
-
     def updateConversationState(self, messageSender, question):
         if messageSender in self.conversationstates:
             for conversationstate in self.conversationstates[messageSender]:
                 if conversationstate['conv_id'] == question['conv_id']:
                     conversationstate['mostrecentinteraction'] = datetime.utcnow()
-                    conversationstate['mostrecentquestion'] = question['q_nr']
+                    conversationstate['mostrecentquestion'] = question['m_nr']
                     return True
             # The conversation_id conv_id had no record in the conv state yet, add it
             self.conversationstates[messageSender].append({'conv_id' : question['conv_id'],
-            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']})
+            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['m_nr']})
             return True
         # First registration of record for messageSender
         else:
             self.conversationstates[messageSender] = [{'conv_id' : question['conv_id'],
-            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['q_nr']}]
+            'timestamp' : datetime.utcnow(), 'mostrecentquestion': question['m_nr']}]
             return True
 
 
@@ -140,9 +141,7 @@ class IncomingMessageHandler:
 
     def reinitialize(self):
         logging.info('Resetting. Fetching questions and responses from DB...')
-        self.questions = db.getQuestions()
-        self.responses = db.getResponses()
-        self.resetSendersConversationState()
+        self.messages = db.getMessages()
 
 
     # Function entry point for layer clas. Side effect for getting responses:
@@ -171,8 +170,8 @@ class IncomingMessageHandler:
                 self.hasConversationTimedOut(messageSender, question)
                 )
                 if shouldGetResponseBool:
-                    response = self.getMatchingResponse(question)
+                    response = question['rtext']
                     isConvStateUpdated = self.updateConversationState(messageSender, question)
                     print 'response: ', response, '\n conv state updated: ', isConvStateUpdated, '\n'
-                    returnResponses.append({'responseText' : response['text']})
+                    returnResponses.append({'responseText' : response})
         return returnResponses
