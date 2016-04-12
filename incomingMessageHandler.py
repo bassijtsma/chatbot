@@ -58,15 +58,13 @@ class IncomingMessageHandler:
     def isUserRegisteredInConversationState(self, messageSender):
         return (messageSender in self.conversationstates)
 
-    # TODO REFACTOR will not work
-    # Sorts all the questions and checks whether the index of the msg (within)
-    # the same conversation id) is a follow up of the most recent question
+
     def isFollowUpQuestion(self, messageSender, question):
         m_nrs = self.getm_nrsListForConvId(question['conv_id'])
         try:
             for convstate in self.conversationstates[messageSender]:
                 if convstate['conv_id'] == question['conv_id']:
-                    return (m_nrs.index(convstate['mostrecentquestion']) + 1 == m_nrs.index(question['m_nr']))
+                    return question['m_nr'] == (convstate['mostrecentquestion'] + 1)
         except Exception, e:
             return False
         return False

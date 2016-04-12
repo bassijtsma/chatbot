@@ -82,14 +82,13 @@ def isUserRegisteredInConversationState(messageSender):
     return (messageSender in conversationstates)
 
 
-# Sorts all the questions and checks whether the index of the msg (within)
-# the same conversation id) is a follow up of the most recent question
 def isFollowUpQuestion(messageSender, question):
     m_nrs = getm_nrsListForConvId(question['conv_id'])
+    print m_nrs
     try:
         for convstate in conversationstates[messageSender]:
             if convstate['conv_id'] == question['conv_id']:
-                return (m_nrs.index(convstate['mostrecentquestion']) + 1 == m_nrs.index(question['m_nr']))
+                return question['m_nr'] == (convstate['mostrecentquestion'] + 1)
     except Exception, e:
         return False
     return False
@@ -197,7 +196,6 @@ def getResponsesForMessage(inputText):
     return returnResponses
 
 db.resetDBToTestState()
-
 while True:
     inputText = askForInput()
     returnResponses = getResponsesForMessage(inputText)
