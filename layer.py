@@ -5,7 +5,7 @@ from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtoco
 from database.sampledata                               import Sampledata
 from database.db                                       import Db
 from datetime                                          import time, tzinfo, datetime, timedelta
-from incomingMessageHandler                            import IncomingMessageHandler
+from responseBuilder                                   import ResponseBuilder
 from yowsup.layers.network                             import YowNetworkLayer
 from yowsup.layers                                     import YowLayerEvent
 import datetime as dt
@@ -15,7 +15,7 @@ import re
 
 
 class EchoLayer(YowInterfaceLayer):
-    incomingMessageHandler = IncomingMessageHandler()
+    responseBuilder = ResponseBuilder()
 
     def onEvent(self, layerEvent):
         # In case of constant disconnects.  https://github.com/tgalal/yowsup/iss
@@ -30,7 +30,7 @@ class EchoLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         #responses =  [{ 'responseText' : 'responsetext'}, {'responseText' : 'responsetext'} ]
-        responses = self.incomingMessageHandler.getResponsesForMessage(messageProtocolEntity)
+        responses = self.responseBuilder.getResponsesForMessage(messageProtocolEntity)
 
         for response in responses:
             outgoingMessageProtocolEntity = TextMessageProtocolEntity(response['responseText'],

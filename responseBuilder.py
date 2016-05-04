@@ -6,7 +6,7 @@ import time
 import re
 import logging, sys
 
-class IncomingMessageHandler:
+class ResponseBuilder:
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     db = Db()
