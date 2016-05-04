@@ -7,7 +7,8 @@ import re
 import logging, sys
 
 class ResponseBuilder:
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
     # logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     db = Db()
     messages = db.getMessages()
@@ -44,10 +45,14 @@ class ResponseBuilder:
     # searces through self.messages to find if the incoming message
     # matches any of the preprogramming input
     def findMessageQuestionMatches(self, incomingmessage):
+        print
         matches = []
         for message in self.messages:
-            if (re.search(r'\b' + message['qtext'] + r'\b', incomingmessage)):
+            loweredmessage = message['qtext'].lower()
+            if (re.search(r'\b' + loweredmessage + r'\b', incomingmessage)):
                 matches.append(message)
+            else:
+                print message['qtext'].lower(), incomingmessage, type(message['qtext']), type(incomingmessage), 'equal:', message['qtext'].lower() == incomingmessage, (re.search(r'\b' + loweredmessage + r'\b', incomingmessage))
         return matches
 
 
@@ -70,6 +75,11 @@ class ResponseBuilder:
         return False
 
 
+
+    # TODO: sort list based on m_nr and base decision on index rather than
+    # m_nr. cannot guarantee the numebrs will be follow ups in frontend when
+    # in situation: mnrs: 1, 2, 3, 4,  2 and 3 are set to alternative. thisll
+    # become 1, 2, 2, 4. 4  is no longer follow up
     def getm_nrsListForConvId(self, conv_id):
         m_nrs = []
         for msg in self.messages:
@@ -156,9 +166,10 @@ class ResponseBuilder:
         if message == self.resetmsg:
             self.reinitialize()
 
-        print 'incoming msg: ', message
+
 
         questionmatches = self.findMessageQuestionMatches(message)
+        print questionmatches
         if questionmatches:
             for question in questionmatches:
                 shouldGetResponseBool = self.shouldGetResponse(
@@ -172,4 +183,5 @@ class ResponseBuilder:
                     isConvStateUpdated = self.updateConversationState(messageSender, question)
                     print 'response: ', response, '\n conv state updated: ', isConvStateUpdated, '\n'
                     returnResponses.append({'responseText' : response})
+        print self.conversationstates
         return returnResponses

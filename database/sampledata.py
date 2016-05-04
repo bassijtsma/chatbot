@@ -18,7 +18,7 @@ class Sampledata:
     ]
 
     messages = [
-     { "m_nr" : 1, "qtext" : "Hi there", "rtext" : "Hi! :) How are you?", "is_alternative" : False, "conv_id" : 1, "key" : 123 },
+     { "m_nr" : 1, "qtext" : "Hi", "rtext" : "Hi! :) How are you?", "is_alternative" : False, "conv_id" : 1, "key" : 123 },
      { "m_nr" : 2, "qtext" : "Good!", "rtext" : "That's great to hear!", "is_alternative" : True, "conv_id" : 1, "key" : 124 },
      { "m_nr" : 2, "qtext" : "Bad!", "rtext" : "I'm sorry to hear that", "is_alternative" : True, "conv_id" : 1, "key" : 125 },
      { "m_nr" : 2, "qtext" : "I'm OK!", "rtext" : "nice", "is_alternative" : True, "conv_id" : 1, "key" : 126 },
