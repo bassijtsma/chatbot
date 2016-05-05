@@ -51,8 +51,8 @@ class ResponseBuilder:
             loweredmessage = message['qtext'].lower()
             if (re.search(r'\b' + loweredmessage + r'\b', incomingmessage)):
                 matches.append(message)
-            else:
-                print message['qtext'].lower(), incomingmessage, type(message['qtext']), type(incomingmessage), 'equal:', message['qtext'].lower() == incomingmessage, (re.search(r'\b' + loweredmessage + r'\b', incomingmessage))
+            elif loweredmessage == incomingmessage:
+                matches.append(message)
         return matches
 
 
