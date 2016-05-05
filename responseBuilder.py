@@ -45,14 +45,16 @@ class ResponseBuilder:
     # searces through self.messages to find if the incoming message
     # matches any of the preprogramming input
     def findMessageQuestionMatches(self, incomingmessage):
-        print
         matches = []
         for message in self.messages:
             loweredmessage = message['qtext'].lower()
             if (re.search(r'\b' + loweredmessage + r'\b', incomingmessage)):
+                print '\n\nRE match, appending', loweredmessage, incomingmessage, re.search(r'\b' + loweredmessage + r'\b', incomingmessage)
                 matches.append(message)
             elif loweredmessage == incomingmessage:
+                print 'exact match, appending', message
                 matches.append(message)
+        print 'returning matches:', matches
         return matches
 
 
@@ -102,7 +104,7 @@ class ResponseBuilder:
     # Logic of doom to check if a question requires a response
     # probably better with switch statement
     def shouldGetResponse(self, isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut):
-        logging.info([isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut])
+        # logging.info([isFirstQuestion, isUserRegisteredInConversationState, isFollowUpQuestion, hasConversationTimedOut])
         if isFirstQuestion:
             if isUserRegisteredInConversationState:
                 if hasConversationTimedOut:
@@ -169,7 +171,7 @@ class ResponseBuilder:
 
 
         questionmatches = self.findMessageQuestionMatches(message)
-        print questionmatches
+        print '\nquestionmatches:\n', questionmatches
         if questionmatches:
             for question in questionmatches:
                 shouldGetResponseBool = self.shouldGetResponse(

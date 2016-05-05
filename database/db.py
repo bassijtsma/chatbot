@@ -100,4 +100,6 @@ class Db:
         self.db.testincomingmsgs.insert(msg)
 
     def getTestIncomingMsg(self):
-        return self.db.testincomingmsgs.find().sort([('$natural', pymongo.ASCENDING)]).limit(1);
+        result = list(self.db.testincomingmsgs.find().sort([('$natural', pymongo.DESCENDING)]).limit(1))
+        print 'returning...', result[0]
+        return result[0]
