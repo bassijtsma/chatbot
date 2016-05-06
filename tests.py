@@ -33,18 +33,17 @@ for i, message in enumerate(samplemessages):
     msgentity = SampleMessageProtocolEntity('testuser', dbmessage['message'])
     response = rb.getResponsesForMessage(msgentity)
 
-    print response
-    print '\n\n'
-    print message
-
+    print response, message
     try:
         if response[0]['rtext'] == message['rtext']:
             print 'test pass!'
-            testpass =+ testpass
+            testpass += 1
         else:
             print 'test fail:', response, message['rtext']
-            testfail =+ testfail
+            testfail += 1
     except Exception, e:
-        testfail =+ testfail
+        testfail += 1
+        print e
+
 
 print '\n\n\nnumber of tests passed: ', testpass, '\nnumber of test fail: ', testfail

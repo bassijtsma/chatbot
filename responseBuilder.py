@@ -49,12 +49,12 @@ class ResponseBuilder:
         for message in self.messages:
             loweredmessage = message['qtext'].lower()
             if (re.search(r'\b' + loweredmessage + r'\b', incomingmessage)):
-                print '\n\nRE match, appending', loweredmessage, incomingmessage, re.search(r'\b' + loweredmessage + r'\b', incomingmessage)
+                # print '\n\nRE match, appending', loweredmessage, incomingmessage, re.search(r'\b' + loweredmessage + r'\b', incomingmessage)
                 matches.append(message)
             elif loweredmessage == incomingmessage:
-                print 'exact match, appending', message
+                # print 'exact match, appending', message
                 matches.append(message)
-        print 'returning matches:', matches
+        # print 'returning matches:', matches
         return matches
 
 
@@ -171,7 +171,7 @@ class ResponseBuilder:
 
 
         questionmatches = self.findMessageQuestionMatches(message)
-        print '\nquestionmatches:\n', questionmatches
+        # print '\nquestionmatches:\n', questionmatches
         if questionmatches:
             for question in questionmatches:
                 shouldGetResponseBool = self.shouldGetResponse(
@@ -185,5 +185,4 @@ class ResponseBuilder:
                     isConvStateUpdated = self.updateConversationState(messageSender, question)
                     print 'response: ', response, '\n conv state updated: ', isConvStateUpdated, '\n'
                     returnResponses.append({'responseText' : response})
-        print self.conversationstates
         return returnResponses

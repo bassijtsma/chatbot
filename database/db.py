@@ -101,5 +101,4 @@ class Db:
 
     def getMostRecentTestIncomingMsg(self):
         result = list(self.db.testincomingmsgs.find().sort([('$natural', pymongo.DESCENDING)]).limit(1))
-        print 'returning...', result[0]
         return result[0]
