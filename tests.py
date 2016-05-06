@@ -1,8 +1,10 @@
 from responseBuilder import ResponseBuilder
 from database.db import Db
+from database.sampledata import Sampledata
 
 db = Db()
 rb = ResponseBuilder()
+sampledata = Sampledata()
 
 print 'starting...'
 
@@ -17,24 +19,32 @@ class SampleMessageProtocolEntity:
     def getBody(self):
         return self.message
 
-# msg1 = SampleMessageProtocolEntity('bas', 'hoi')
-# msg2 = SampleMessageProtocolEntity('bas', 'Hi there')
-# msg3 = SampleMessageProtocolEntity('bas', 'bad!s')
-# msg4 = SampleMessageProtocolEntity('bas', 'hoi')
-# msg5 = SampleMessageProtocolEntity('bas', 'How about you?')
-#
-# testmessages = [msg1, msg2, msg3, msg4, msg5]
-#
-# for msg in testmessages:
-#     responses = rb.getResponsesForMessage(msg)
 
+db.clearTestIncomingMsg()
+samplemessages = sampledata.getMessages()
 
-while True:
-    incomingmsg = raw_input('Incoming message:')
+testpass = 0
+testfail = 0
 
+for i, message in enumerate(samplemessages):
+    print 'running test ', i, ' of: ', len(samplemessages)
+    db.insertTestIncomingMsg({'message': message['qtext'], 'sender': 'testuser'})
+    dbmessage = db.getMostRecentTestIncomingMsg()
+    msgentity = SampleMessageProtocolEntity('testuser', dbmessage['message'])
+    response = rb.getResponsesForMessage(msgentity)
 
-    db.insertTestIncomingMsg({'message': incomingmsg, 'sender': 'testuser' })
-    testmsg = db.getTestIncomingMsg()
-    print testmsg, type(testmsg['message'])
-    msgentity = SampleMessageProtocolEntity(testmsg['sender'], testmsg['message'])
-    rb.getResponsesForMessage(msgentity)
+    print response
+    print '\n\n'
+    print message
+
+    try:
+        if response[0]['rtext'] == message['rtext']:
+            print 'test pass!'
+            testpass =+ testpass
+        else:
+            print 'test fail:', response, message['rtext']
+            testfail =+ testfail
+    except Exception, e:
+        testfail =+ testfail
+
+print '\n\n\nnumber of tests passed: ', testpass, '\nnumber of test fail: ', testfail
