@@ -23,6 +23,7 @@ while True:
 
     db.insertTestIncomingMsg({'message': incomingmsg, 'sender': 'testuser' })
     testmsg = db.getMostRecentTestIncomingMsg()
-    print testmsg, type(testmsg['message'])
     msgentity = SampleMessageProtocolEntity(testmsg['sender'], testmsg['message'])
-    rb.getResponsesForMessage(msgentity)
+    response = rb.getResponsesForMessage(msgentity)
+    if not response:
+        print 'no response for input ', incomingmsg
